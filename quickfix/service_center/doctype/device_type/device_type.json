@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:device_type",
+ "creation": "2026-02-24 14:42:08.457246",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "about_device_type_section",
+  "device_type",
+  "description",
+  "average_repair_hours"
+ ],
+ "fields": [
+  {
+   "fieldname": "about_device_type_section",
+   "fieldtype": "Section Break",
+   "label": "About Device Type"
+  },
+  {
+   "bold": 1,
+   "fieldname": "device_type",
+   "fieldtype": "Data",
+   "label": "Device Type",
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "average_repair_hours",
+   "fieldtype": "Int",
+   "label": "Average Repair Hours"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-02-24 14:45:32.666786",
+ "modified_by": "Administrator",
+ "module": "Service Center",
+ "name": "Device Type",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

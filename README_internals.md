@@ -1,49 +1,35 @@
-# QuickFix-Frappe-app
-
 <!-- Question: -->
 1.In README.md explain in 4 sentences: what each config file is for, and what breaks
 if you accidentally put a secret in common_site_config.json
 <!-- Answer: -->
-site_config.json stores settings specific to one site, like database credentials and site-level secrets.
-
-common_site_config.json contains global settings shared across all sites in the bench, such as Redis or developer mode configuration.
-
-App config files like hooks.py define how the app behaves, loads features, and connects with Frappe events.
-
-If a secret is accidentally placed in common_site_config.json, it becomes shared across every site, which can expose sensitive data and create security risks or unintended access.
-
+site_config.json stores configuration that is specific to a single site, such as database details and site-level settings.
+common_site_config.json stores global configuration shared across all sites in the same bench environment.
+hooks.py is an app configuration file that defines how the app integrates with Frappe, including events, hooks, and loading behaviour.
+If a secret is placed in common_site_config.json, it becomes shared across every site, which can expose sensitive data and create security risks because all sites will be able to access that secret.
 
 <!-- Question: -->
 2.In README.md: list the 4 processes bench start launches (web, worker, scheduler,
 socketio) and explain what happens to background jobs if the worker process
 crashes.
 <!-- Answer: -->
-bench start runs four processes web (handles HTTP requests), worker (executes background jobs),scheduler(triggers scheduled tasks), and socketio(real-time updates),and if the worker crashes,queued background jobs stop processing until the worker restarts,causing delays but not data loss since jobs remain in the queue.
-
+bench start runs four processes: web(handles HTTP requests), worker (processes background jobs), scheduler(runs scheduled tasks), and socketio (handles realtime updates).If the worker process crashes, background jobs stop executing temporarily but remain in the queue, and they will continue once the worker restarts.
 
 <!-- Question: -->
 3.When a browser hits /api/method/quickfix.api.get_job_summary - what Python
 function handles this request and how does Frappe find it?
 <!-- Answer: -->
-The Python function get_job_summary inside the file quickfix/api.py handles this request.
-Frappe reads the dotted path (quickfix.api.get_job_summary), imports the quickfix app, then loads the api.py module and calls the function.
-The function must be decorated with @frappe.whitelist() so it can be accessed via HTTP API.
-
+The Python function get_job_summary inside quickfix/api.py handles this request. Frappe reads the dotted path quickfix.api.get_job_summary, imports the quickfix app, loads the api.py file, and calls the function. The function must be decorated with @frappe.whitelist() to allow API access.
 
 <!-- Question: -->
-When a browser hits /api/resource/Job Card/JC-2024-0001 - what happens
+4.When a browser hits /api/resource/Job Card/JC-2024-0001 - what happens
 differently compared to /api/method/?
 <!-- Answers -->
-/api/resource/ uses Frappe’s built-in REST API to directly access DocTypes and database records.
-Instead of calling a custom Python function, Frappe automatically loads the Job Card document using its ORM and returns the record data.
-/api/method/ executes a specific Python function, while /api/resource/ performs CRUD operations on documents.
+/api/resource/ uses Frappe’s built-in REST API to directly access DocType records through the ORM. while /api/resource/ performs standard CRUD operations by calling a function on documents.
 
 <!-- Question: -->
 When a browser hits /track-job - which file/function handles it and why?
 <!-- Answer: -->
-This is handled by a file inside the app’s www/ folder, for example quickfix/www/track-job.py or track-job.html.
-Frappe automatically maps URL routes to files inside the www directory.
-The function prepares data and renders the web page because www is used for website routes.
+This is handled by a file inside the app’s www/ folder, for example quickfix/www/track-job.py or track-job.html. 
 
 <!-- Question: -->
 With developer_mode: 1 - trigger a Python exception in one of your whitelisted
@@ -52,14 +38,55 @@ Set developer_mode: 0 - repeat. What does the browser receive now? Why is this
 important for production?
 Where do production errors go if they are hidden from the browser?
 <!-- Answers: -->
-* With developer_mode: 1, when a Python exception happens, the browser receives the full traceback and detailed error message, which helps debugging.
-* With developer_mode: 0, the browser only receives a generic error message (no traceback) to avoid exposing internal code or sensitive details, which is important for production security.
-* Hidden production errors are logged in server log files (like `frappe.log` / `error.log`) and can be viewed in logs or Error Log DocType.
+With developer_mode: 1, when a Python exception occurs, the browser receives detailed error message helps during development and debugging.
+With developer_mode: 0, the browser only receives a generic error message.
+Hidden production errors are stored in server log files and the Error Log DocType for later debugging.
 
 <!-- Questions: -->
 In a whitelisted method, call frappe.get_doc("Job Card", name) WITHOUT
 ignore_permissions. Then log in as a QF Technician user who is NOT assigned to
 that job. What error is raised and at what layer does Frappe stop the request?
 <!-- Answers: -->
-* The error raised will be a PermissionError (Not Permitted) because the user does not have permission to access that Job Card.
-* Frappe stops the request at the permission validation layer (DocType permission check / ORM level) before returning the document data, preventing unauthorized access.
+The error raised will be a PermissionError or Not Permitted error because the user does not have access to that Job Card.
+Frappe stops the request at the permission checking layer inside the ORM before returning any document data, preventing unauthorized access.
+
+<!-- Question: -->
+Run: frappe.db.sql("SHOW TABLES LIKE '%Job%'") and list what you see. Explain
+the tab prefix convention.
+<!-- Answer: -->
+When I ran the query, I saw tables like tabScheduled Job Log and tabScheduled Job Type, which are database tables related to jobs. Frappe uses the tab prefix for all DocType tables so that the framework can easily identify and manage tables created from DocTypes.
+
+<!-- Question: -->
+Run: frappe.db.sql("DESCRIBE `tabJob Card`", as_dict=True) and list 5 column
+names you recognise from your DocType fields.
+<!-- Answer -->
+When running the DESCRIBE command, I expect to see columns like name, customer_name, device_type, assigned_technician, and status because these are fields defined in the Job Card DocType.
+
+<!-- Question: -->
+What are the three numeric values of docstatus and what state does each represent?
+<!-- Answer: -->
+In Frappe, docstatus has three numeric values: 0 = Draft, 1 = Submitted, and 2 = Cancelled.
+<!-- Question: -->
+Can you call doc.save() on a submitted document? What about doc.submit() on a cancelled one? Test in bench console and explain why.
+<!-- Answer: -->
+Normally you cannot modify and save a submitted document because it is final, unless specific fields allow editing.
+You also cannot call doc.submit() on a cancelled document
+
+<!-- Question: -->
+Why would you see a "Document has been modified after you have opened it" error and how does Frappe prevent concurrent overwrites?
+<!-- Answer: -->
+This error happens when another user or process changes the document after you opened it but before you saved your changes.Frappe compares the last modified timestamp
+<!-- Part E -->
+The following snippet has TWO bugs related to document lifecycle. Identify both and write
+the corrected version:
+def validate(self):
+self.total = sum(r.amount for r in self.items)
+self.save()
+other = frappe.get_doc("Spare Part", self.part)
+other.stock_qty -= self.qty
+other.save()
+<!-- Answer -->
+-The first bug is calling self.save() inside validate(), which causes recursion because validate() already runs during the save process.
+
+-The second bug is modifying another document inside validate(), which creates side effects; updates like stock changes should be done in lifecycle methods such as on_submit() instead.
+

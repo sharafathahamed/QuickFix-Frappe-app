@@ -1,0 +1,71 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-24 19:52:55.072029",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "quickfix_settings_section",
+  "shop_name",
+  "manager_email",
+  "default_labour_change",
+  "low_stock_alert_enabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "quickfix_settings_section",
+   "fieldtype": "Section Break",
+   "label": "QuickFix Settings"
+  },
+  {
+   "fieldname": "shop_name",
+   "fieldtype": "Data",
+   "label": "Shop Name"
+  },
+  {
+   "fieldname": "manager_email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Manager Email",
+   "reqd": 1
+  },
+  {
+   "default": "500",
+   "fieldname": "default_labour_change",
+   "fieldtype": "Currency",
+   "label": "Default Labour Change"
+  },
+  {
+   "default": "1",
+   "fieldname": "low_stock_alert_enabled",
+   "fieldtype": "Check",
+   "label": "Low Stock Alert Enabled"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-02-24 19:55:46.679877",
+ "modified_by": "Administrator",
+ "module": "Service Center",
+ "name": "QuickFix Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
