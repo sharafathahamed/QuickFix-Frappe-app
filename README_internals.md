@@ -1,5 +1,5 @@
 <!-- Question: -->
-##1.In README.md explain in 4 sentences: what each config file is for, and what breaks
+1.In README.md explain in 4 sentences: what each config file is for, and what breaks
 if you accidentally put a secret in common_site_config.json
 <!-- Answer: -->
   -site_config.json stores configuration that is specific to a single site, such as database details and site-level settings.
