@@ -1,21 +1,31 @@
 **1. In README.md explain in 4 sentences: what each config file is for, and what breaks if you accidentally put a secret in common_site_config.json**
 
-site_config.json stores configuration that is specific to a single site, such as database details and site-level settings.  
-common_site_config.json stores global configuration shared across all sites in the same bench environment.  
-hooks.py is an app configuration file that defines how the app integrates with Frappe, including events, hooks, and loading behaviour.  
+site_config.json stores configuration that is specific to a single site,such as database details and site-level settings.  
+
+common_site_config.json stores configuration shared across all sites in the same bench environment.  
+
+hooks.py is an app configuration file that defines events, hooks, and loading behaviour.  
+
 If a secret is placed in common_site_config.json, it becomes shared across every site, which can expose sensitive data and create security risks because all sites will be able to access that secret.
 
 ---
 
 **2. In README.md: list the 4 processes bench start launches (web, worker, scheduler, socketio) and explain what happens to background jobs if the worker process crashes**
 
-bench start runs four processes: web (handles HTTP requests), worker (processes background jobs), scheduler (runs scheduled tasks), and socketio (handles realtime updates). If the worker process crashes, background jobs stop executing temporarily but remain in the queue, and they will continue once the worker restarts.
+bench start runs four processes: 
+  workers- processes background jobs, 
+  scheduler- runs scheduled tasks, and 
+  socketio- handles realtime updates. 
+
+  If the worker process crashes, background jobs stop executing temporarily but remain in the queue, and they will continue once the worker restarts.
 
 ---
 
 **3. When a browser hits /api/method/quickfix.api.get_job_summary - what Python function handles this request and how does Frappe find it?**
 
-The Python function get_job_summary inside quickfix/api.py handles this request. Frappe reads the dotted path quickfix.api.get_job_summary, imports the quickfix app, loads the api.py file, and calls the function. The function must be decorated with @frappe.whitelist() to allow API access.
+The Python function get_job_summary inside quickfix/api.py will be called. 
+
+Frappe reads the dotted path quickfix.api.get_job_summary, imports the quickfix app, loads the api.py file, and calls the function. The function must be decorated with @frappe.whitelist() to allow API access.
 
 ---
 
@@ -33,8 +43,9 @@ This is handled by a file inside the app’s www/ folder, for example quickfix/w
 
 **6. With developer_mode: 1 - trigger a Python exception in one of your whitelisted methods. What does the browser receive? Set developer_mode: 0 - repeat. What does the browser receive now? Why is this important for production? Where do production errors go if they are hidden from the browser?**
 
-With developer_mode: 1, when a Python exception occurs, the browser receives a detailed error message which helps during development and debugging.  
-With developer_mode: 0, the browser only receives a generic error message. Hidden production errors are stored in server log files and the Error Log DocType for later debugging.
+With developer_mode: 1, when a Python exception occurs, the browser receives a detailed error message.  
+
+With developer_mode: 0, the browser only receives a generic error message.
 
 ---
 
