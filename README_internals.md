@@ -3,8 +3,11 @@
 if you accidentally put a secret in common_site_config.json
 <!-- Answer: -->
   site_config.json stores configuration that is specific to a single site, such as database details and site-level settings.
+  
 common_site_config.json stores global configuration shared across all sites in the same bench environment.
+
 hooks.py is an app configuration file that defines how the app integrates with Frappe, including events, hooks, and loading behaviour.
+
 If a secret is placed in common_site_config.json, it becomes shared across every site, which can expose sensitive data and create security risks because all sites will be able to access that secret.
 
 <!-- Question: -->
@@ -12,7 +15,11 @@ If a secret is placed in common_site_config.json, it becomes shared across every
 socketio) and explain what happens to background jobs if the worker process
 crashes.
 <!-- Answer: -->
-  bench start runs four processes: web(handles HTTP requests), worker (processes background jobs), scheduler(runs scheduled tasks), and socketio (handles realtime updates).If the worker process crashes, background jobs stop executing temporarily but remain in the queue, and they will continue once the worker restarts.
+  bench start runs four processes: 
+      web(handles HTTP requests),
+      worker (processes background jobs),   
+      scheduler(runs scheduled tasks), 
+      and socketio (handles realtime updates).If the worker process crashes, background jobs stop executing temporarily but remain in the queue, and they will continue once the worker restarts.
 
 <!-- Question: -->
 3.When a browser hits /api/method/quickfix.api.get_job_summary - what Python
@@ -38,7 +45,9 @@ Set developer_mode: 0 - repeat. What does the browser receive now? Why is this
 important for production?
 Where do production errors go if they are hidden from the browser?
 <!-- Answers: -->
-  With developer_mode: 1, when a Python exception occurs, the browser receives detailed error message helps during development and debugging.
+  With 
+  developer_mode: 1, when a Python exception occurs, the browser receives detailed error message helps during development and debugging.
+  
 With developer_mode: 0, the browser only receives a generic error message.
 Hidden production errors are stored in server log files and the Error Log DocType for later debugging.
 
@@ -48,6 +57,7 @@ ignore_permissions. Then log in as a QF Technician user who is NOT assigned to
 that job. What error is raised and at what layer does Frappe stop the request?
 <!-- Answers: -->
   The error raised will be a PermissionError or Not Permitted error because the user does not have access to that Job Card.
+  
 Frappe stops the request at the permission checking layer inside the ORM before returning any document data, preventing unauthorized access.
 
 <!-- Question: -->
@@ -70,6 +80,7 @@ names you recognise from your DocType fields.
 11.Can you call doc.save() on a submitted document? What about doc.submit() on a cancelled one? Test in bench console and explain why.
 <!-- Answer: -->
   Normally you cannot modify and save a submitted document because it is final, unless specific fields allow editing.
+  
 You also cannot call doc.submit() on a cancelled document
 
 <!-- Question: -->
