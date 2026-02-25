@@ -107,3 +107,17 @@ tabPart Usage Entry
 **16. If you delete row at idx=2 and re-save, what happens to idx values of remaining rows?**
 
 If the row with idx = 2 is deleted and the document is saved again, Frappe automatically reorders the remaining rows and updates the idx values sequentially so there are no gaps.
+
+**17.Rename one of your test Technician records using Rename Document feature. Then check: does the assigned_technician field on linked Job Cards automatically update? Why or why not? What does "track changes" mean in this context?**
+
+Yes, If I change in document it should affects its linked field aswell.
+Because Frappe automatically update every link fields when ever the document is saved.
+Only the document id is linked so it changes.
+
+Track Changes is automatic logs which changed what and when, showing a "Version" history at the bottom of the document.
+
+**18.Explain unique constraints: what is the difference between setting a field as "unique" in the DocType vs doing a frappe.db.exists() check in validate()?**
+
+Setting a field as unique in the DocType creates a database to prevents duplicates.
+
+In contrast, frappe.db.exists() in the validate() method is an application-level check that is more flexible for custom logic but can be bypassed by direct database writes.

@@ -20,7 +20,18 @@ app_license = "mit"
 # 		"has_permission": "quickfix.api.permission.has_app_permission"
 # 	}
 # ]
+fixtures=[
+    {"dt":"Custom DocPerm"},
+    {"dt":"Role"}
+]
 
+permission_query_conditions = {
+    "Job Card": "quickfix.permissions.get_permission_query_conditions"
+}
+
+has_permission = {
+    "Service Invoice": "quickfix.permissions.has_permission"
+}
 # Includes in <head>
 # ------------------
 
