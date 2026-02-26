@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.model.naming import make_autoname
 
 
 class SparePart(Document):
@@ -11,4 +12,5 @@ class SparePart(Document):
 			frappe.throw("Selling price must be greater than unit cost")
 	def autoname(self):
 		self.part_code=self.part_code.upper()
-		self.name=frappe.model.naming.make_autoname("PART-.YYYY.-.####")
+		self.name = make_autoname(f"{self.part_code}-.####")
+	
