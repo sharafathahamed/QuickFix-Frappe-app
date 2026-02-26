@@ -8,7 +8,8 @@ app_license = "mit"
 # Apps
 # ------------------
 
-# required_apps = []
+#"Service Invoice": "quickfix.permissions.has_permission"
+#} required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -31,6 +32,9 @@ permission_query_conditions = {
 
 has_permission = {
     "Service Invoice": "quickfix.permissions.has_permission"
+}
+override_doctype_class={
+    "quickfix.overrides.custom_job_card.CustomJobCard"
 }
 # Includes in <head>
 # ------------------
