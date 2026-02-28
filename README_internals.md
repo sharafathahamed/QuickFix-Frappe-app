@@ -136,3 +136,9 @@ frappe.get_all()-- do not check for any permissions, it opens every door of ever
 
 Calling self.save() inside on_update() creates a infinite save
 Instead this we could just pass it or we can write frappe.db_set()
+
+**21.why is doc_events safer than override_doctype_class for most use cases?**
+
+doc_events is safer because it allows codee to write alongside instead replacing the whole code. It lets you work on different apps.
+
+**22.**

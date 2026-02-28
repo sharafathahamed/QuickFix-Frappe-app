@@ -34,7 +34,7 @@ has_permission = {
     "Service Invoice": "quickfix.permissions.has_permission"
 }
 override_doctype_class={
-    "quickfix.overrides.custom_job_card.CustomJobCard"
+    "Job Card": "quickfix.overrides.custom_job_card.CustomJobCard"
 }
 # Includes in <head>
 # ------------------

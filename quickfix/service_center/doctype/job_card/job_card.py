@@ -28,6 +28,7 @@ class JobCard(Document):
 
 		self.parts_total=parts_total
 		self.final_amount = self.parts_total + self.labour_charge
+		
 
 	def before_submit(self):
 		if self.status!="Ready for Delivery":
