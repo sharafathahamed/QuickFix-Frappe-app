@@ -25,7 +25,16 @@ fixtures=[
     {"dt":"Custom DocPerm"},
     {"dt":"Role"}
 ]
-
+doc_events={
+    "*":{
+        "on_update":"quickfix.audit.log_change",
+        "on_submit":"quickfix.audit.log_change",
+        "on_cancel":"quickfix.audit.log_change"
+    },
+    "Job Card":{
+        "validate":"quickfix.utils.valid_external"
+    }
+}
 permission_query_conditions = {
     "Job Card": "quickfix.permissions.get_permission_query_conditions"
 }
@@ -41,7 +50,7 @@ override_doctype_class={
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/quickfix/css/quickfix.css"
-# app_include_js = "/assets/quickfix/js/quickfix.js"
+app_include_js = "/assets/quickfix/js/quickfix.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/quickfix/css/quickfix.css"
@@ -98,12 +107,17 @@ override_doctype_class={
 # ------------
 
 # before_install = "quickfix.install.before_install"
-# after_install = "quickfix.install.after_install"
+after_install = "quickfix.setup.after_install"
 
 # Uninstallation
 # ------------
 
-# before_uninstall = "quickfix.uninstall.before_uninstall"
+before_uninstall = "quickfix.setup.before_uninstall"
+
+# Boot and Session Hooks
+extend_bootinfo = "quickfix.utils.extend_bootinfo"
+on_session_creation = "quickfix.utils.log_session_event"
+on_logout = "quickfix.utils.log_session_event"
 # after_uninstall = "quickfix.uninstall.after_uninstall"
 
 # Integration Setup
@@ -261,4 +275,3 @@ override_doctype_class={
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

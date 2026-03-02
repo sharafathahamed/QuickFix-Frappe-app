@@ -8,10 +8,12 @@ from frappe.utils import flt
 
 class JobCard(Document):
 	def validate(self):
+		frappe.msgprint("Running Controller Validation")
 		if len(self.customer_phone)!=10:
 			frappe.throw("Number should be exactly 10")
 
-		if self.status not in ["Draft","Pending Diagnosis","Awaiting Customer Approval"] and not self.assigned_technician:
+		status = self.status or "Draft"
+		if status not in ["Draft","Pending Diagnosis","Awaiting Customer Approval"] and not self.assigned_technician:
 			frappe.throw("Assign Technician First!!")
 
 		settings=frappe.db.get_single_value("QuickFix Settings","default_labour_change")
@@ -35,20 +37,19 @@ class JobCard(Document):
 			frappe.throw("Can't Submit without 'Ready for Delivery'")
 
 		for row in self.parts_used:
-			curr_stck=frappe.db.get_value("Spare Part",row.part,"sock_qty")
+			curr_stck=frappe.db.get_value("Spare Part",row.part,"stock_qty")
 
 			if flt(curr_stck)<flt(row.quantity):
 				frappe.throw(f"Insufficient Stock for {row.part_name}. Available: {curr_stck}, Required: {row.quantity}")
 
 	def on_submit(self):
 		for row in self.parts_used:
-			curr_stk=frappe.db.get_value("Spare Part",row.part,"sock_qty")
+			curr_stk=frappe.db.get_value("Spare Part",row.part,"stock_qty")
 			
 			frappe.db.set_value("Spare Part",
 					   row.part,
-					   "sock_qty",
-					   flt(curr_stk)-flt(row.quantity), 
-					   ignore_permissions=True)
+					   "stock_qty",
+					   flt(curr_stk)-flt(row.quantity))
 
 		invoice= frappe.get_doc({
 			"doctype":"Service Invoice",
@@ -78,6 +79,3 @@ class JobCard(Document):
 	def on_trash(self):
 		if self.status not in ["Draft", "Cancelled"]:
 			frappe.throw("You can only delete only if you cancel")
-	
-	def on_update(self):
-		self.save()

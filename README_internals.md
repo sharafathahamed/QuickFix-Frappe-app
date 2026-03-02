@@ -141,4 +141,11 @@ Instead this we could just pass it or we can write frappe.db_set()
 
 doc_events is safer because it allows codee to write alongside instead replacing the whole code. It lets you work on different apps.
 
-**22.**
+**22.in what order do they run in job_card?**
+
+First: It runs Main controller which is from validate method in Job_card.py
+Second: It runs the doc_events in hooks.py
+
+**23.What happens if both raise a frappe.ValidationError?**
+
+When Main controller raises frappe.ValidationError error it immediately stops.

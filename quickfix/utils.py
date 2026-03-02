@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils import now_datetime
 
 @frappe.whitelist()
 def updated_technician_id(old_name,new_name):
@@ -16,3 +17,29 @@ def send_urgent_alert(manager,job_card,self):
         content=message,
         now=True
     )
+def valid_external(doc,method):
+    frappe.msgprint("Running doc_events validation")
+
+
+def extend_bootinfo(bootinfo):
+    if not frappe.db.exists("QuickFix Settings", "QuickFix Settings"):
+        return
+
+    settings = frappe.get_single("QuickFix Settings")
+    bootinfo.quickfix_shop_name = settings.shop_name
+    bootinfo.quickfix_manager_email = settings.manager_email
+
+
+def log_session_event(user=None, event_type=None):
+    action = event_type or "Session Event"
+
+    frappe.get_doc(
+        {
+            "doctype":"Audit Log",
+            "doctype_name":"System",
+            "document_name": user,
+            "action":action,
+            "user":user,
+            "timestamp": now_datetime(),
+        }
+    ).insert(ignore_permissions=True)
