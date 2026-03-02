@@ -108,6 +108,8 @@ tabPart Usage Entry
 
 If the row with idx = 2 is deleted and the document is saved again, Frappe automatically reorders the remaining rows and updates the idx values sequentially so there are no gaps.
 
+---
+
 **17.Rename one of your test Technician records using Rename Document feature. Then check: does the assigned_technician field on linked Job Cards automatically update? Why or why not? What does "track changes" mean in this context?**
 
 Yes, If I change in document it should affects its linked field aswell.
@@ -116,8 +118,27 @@ Only the document id is linked so it changes.
 
 Track Changes is automatic logs which changed what and when, showing a "Version" history at the bottom of the document.
 
+---
+
 **18.Explain unique constraints: what is the difference between setting a field as "unique" in the DocType vs doing a frappe.db.exists() check in validate()?**
 
 Setting a field as unique in the DocType creates a database to prevents duplicates.
 
 In contrast, frappe.db.exists() in the validate() method is an application-level check that is more flexible for custom logic but can be bypassed by direct database writes.
+
+---
+
+**19.What is the issues in using frappe.get_all in a whitelisted method that is exposed to guests or low-privilege users. Explain it in the context of permission_query_conditions**
+
+frappe.get_all()-- do not check for any permissions, it opens every door of every permissions and securities
+
+**20.Call self.save() inside on_update and see to the issues of it and explain them in the same readme_internals. Correct the pattern and explain it.**
+
+Calling self.save() inside on_update() creates a infinite save
+Instead this we could just pass it or we can write frappe.db_set()
+
+**21.why is doc_events safer than override_doctype_class for most use cases?**
+
+doc_events is safer because it allows codee to write alongside instead replacing the whole code. It lets you work on different apps.
+
+**22.**

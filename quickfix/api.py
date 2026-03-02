@@ -20,3 +20,8 @@ def manager_only_action():
 @frappe.whitelist()
 def get_job_details_safe():
     return frappe.get_list("Job Card", fields=["name", "status"])
+
+#Unsafe
+@frappe.whitelist()
+def get_job_unsafe():
+    return frappe.get_all("Job Card",fields=["*"])
