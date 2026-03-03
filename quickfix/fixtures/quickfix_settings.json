@@ -1,0 +1,13 @@
+[
+ {
+  "default_labour_change": 500.0,
+  "docstatus": 0,
+  "doctype": "QuickFix Settings",
+  "low_stock_alert_enabled": 1,
+  "low_stock_threshold": 0,
+  "manager_email": null,
+  "modified": "2026-03-02 21:07:28.433438",
+  "name": "QuickFix Settings",
+  "shop_name": "QuickFix"
+ }
+]

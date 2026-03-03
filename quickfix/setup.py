@@ -22,3 +22,4 @@ def after_install():
 def before_uninstall():
     if frappe.db.exists("Job Card", {"docstatus": 0}):
         frappe.throw(_("Cancel draft Job Cards before uninstall"))
+ 
