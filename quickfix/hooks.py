@@ -23,7 +23,12 @@ app_license = "mit"
 # ]
 fixtures=[
     {"dt":"Custom DocPerm"},
-    {"dt":"Role"}
+    {"dt":"Role"},
+    {"dt":"Custom Field"},
+    {"dt":"Property Setter"},
+    {"dt":"Workspace","filters":[["label","=","QuickFix"]]},
+    {"dt":"Device Type"},
+    {"dt":"QuickFix Settings"}
 ]
 doc_events={
     "*":{
