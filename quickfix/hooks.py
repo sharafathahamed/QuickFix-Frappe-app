@@ -47,17 +47,33 @@ override_doctype_class={
 }
 # Includes in <head>
 # ------------------
-
+jinja={
+    "methods":[
+        "quickfix.utils.get_shop_name"
+    ],
+    "filters":[
+        "quickfix.utils.format_job_id"
+    ]
+}
 # include js, css files in header of desk.html
 # app_include_css = "/assets/quickfix/css/quickfix.css"
-app_include_js = "/assets/quickfix/js/quickfix.js"
-
+app_include_js = "quickfix.bundle.js"
 # include js, css files in header of web template
 # web_include_css = "/assets/quickfix/css/quickfix.css"
 # web_include_js = "/assets/quickfix/js/quickfix.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "quickfix/public/scss/website"
+website_route_rules=[
+    {"from_route":"/track-job","to_route":"track_job"}
+]
+portal_menu_items = [
+{
+        "label": "Track My Job",
+        "route": "/track-job",
+        "role": "Guest"
+    }
+]
 
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
@@ -115,9 +131,13 @@ after_install = "quickfix.setup.after_install"
 before_uninstall = "quickfix.setup.before_uninstall"
 
 # Boot and Session Hooks
-extend_bootinfo = "quickfix.utils.extend_bootinfo"
-on_session_creation = "quickfix.utils.log_session_event"
-on_logout = "quickfix.utils.log_session_event"
+# `extend_bootinfo` is implemented in boot.py, not utils.py. The hook
+# originally referenced `quickfix.utils.extend_bootinfo` which caused an
+# AttributeError during session boot. Update the path here and provide
+# a thin alias in utils for compatibility.
+extend_bootinfo = "quickfix.boot.extend_bootinfo"
+on_session_creation = "quickfix.utils.handle_session_creation"
+on_logout = "quickfix.utils.handle_logout"
 # after_uninstall = "quickfix.uninstall.after_uninstall"
 
 # Integration Setup
@@ -161,7 +181,10 @@ on_logout = "quickfix.utils.log_session_event"
 # override_doctype_class = {
 # 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
+override_whitelist_method={
+    "frappe.whitelist_methods":"quickfix.api.custom_get_count"
 
+}
 # Document Events
 # ---------------
 # Hook on document methods and events

@@ -1,7 +1,6 @@
 # Copyright (c) 2026, Sharafath Ahamed and contributors
 # For license information, please see license.txt
 
-from erpnext.crm.frappe_crm_api import link_doc
 import frappe
 from frappe.model.document import Document
 from frappe.utils import flt
@@ -9,7 +8,8 @@ from frappe.utils import flt
 class JobCard(Document):
 	def validate(self):
 		frappe.msgprint("Running Controller Validation")
-		if len(self.customer_phone)!=10:
+		phone = (self.customer_phone or "").strip()
+		if len(phone) != 10 or not phone.isdigit():
 			frappe.throw("Number should be exactly 10")
 
 		status = self.status or "Draft"
@@ -40,7 +40,8 @@ class JobCard(Document):
 			curr_stck=frappe.db.get_value("Spare Part",row.part,"stock_qty")
 
 			if flt(curr_stck)<flt(row.quantity):
-				frappe.throw(f"Insufficient Stock for {row.part_name}. Available: {curr_stck}, Required: {row.quantity}")
+				part_label = row.data or row.part
+				frappe.throw(f"Insufficient Stock for {part_label}. Available: {curr_stck}, Required: {row.quantity}")
 
 	def on_submit(self):
 		for row in self.parts_used:
@@ -61,7 +62,7 @@ class JobCard(Document):
 
 		invoice.insert(ignore_permissions=True)
 		frappe.publish_realtime("job_ready",{
-			"job:":self.name
+			"job": self.name
 		},user=self.owner)
 		frappe.enqueue("quickfix.utils.send_job_ready_email", job_card=self.name)
 
