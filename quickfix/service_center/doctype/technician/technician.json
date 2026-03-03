@@ -45,8 +45,9 @@
   },
   {
    "fieldname": "email",
-   "fieldtype": "Data",
-   "label": "Email"
+   "fieldtype": "Email",
+   "label": "Email",
+   "reqd": 1
   },
   {
    "fieldname": "specialization",

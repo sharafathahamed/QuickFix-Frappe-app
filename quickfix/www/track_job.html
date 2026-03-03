@@ -1,0 +1,16 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<h2>Track Job Page</h2>
+<p>Route hook is working.</p>
+<p><strong>Path:</strong> {{ request_path or "N/A" }}</p>
+
+<form method="get" action="/track-job" style="margin-top: 16px;">
+	<input type="text" name="job_id" placeholder="Enter Job ID" value="{{ job_id or '' }}">
+	<button type="submit">Check</button>
+</form>
+
+{% if job_id %}
+<p style="margin-top: 12px;"><strong>Job ID:</strong> {{ job_id }}</p>
+{% endif %}
+{% endblock %}

@@ -6,10 +6,16 @@ from frappe.model.document import Document
 
 class Technician(Document):
     def before_insert(self):
-        if not frappe.db.exists("User", self.email):
+        if not self.email:
+            frappe.throw("Email is required to create the linked User for Technician.")
+
+        email = self.email.strip().lower()
+        self.email = email
+
+        if not frappe.db.exists("User", email):
             user = frappe.get_doc({
                 "doctype": "User",
-                "email": self.email,
+                "email": email,
                 "first_name": self.technician_name,
                 "send_welcome_email": 1,
                 "roles": [{"role": "QF Technician"}]
@@ -17,6 +23,6 @@ class Technician(Document):
             user.insert(ignore_permissions=True)
             self.user = user.name
         else:
-            user = frappe.get_doc("User", self.email)
+            user = frappe.get_doc("User", email)
             user.add_roles("QF Technician")
             self.user = user.name
