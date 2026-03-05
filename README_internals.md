@@ -184,6 +184,8 @@ override_whitelisted_methods is the way to change API functions using a clear li
 
 Use the hook for standard API updates to keep your code clean, and only use monkey patching as a last resort for core internal logic.
 
+**F4**
+
 **What happens if TWO apps both register override_whitelisted_methods for the same method? Write the answer.**
 
 If two separate apps register an override_whitelisted_methods for the exact same function, the app that is loaded last by the Frappe framework will win and its method will be the one executed.
@@ -193,3 +195,86 @@ The load order is determined by the sequence of apps listed in your site's apps.
 **Explain about the Signature mismatch and not having exactly the same arguments as the original and in what case would you get a TypeError.**
 
 Signature mismatch happens when your custom function’s arguments don't exactly match the original’s, leading to a TypeError if the system sends a parameter your code doesn't recognize. To prevent this, always include **kwargs to safely catch any extra arguments and ensure long-term compatibility.
+
+**F5**
+
+**Explain fieldname collision risk: what happens if your Custom Field has the same fieldname as a field added by a future Frappe update?**
+
+If you create a Custom Field on Job Card with fieldname priority, and Frappe later adds its own priority field in a core update, bench migrate will crash with a duplicate column error in MariaDB.
+Your existing data in priority may get overwritten by Frappe's version, and any core logic Frappe built around its priority field will conflict with your custom behavior.
+Always prefix your custom fields with your app name — use qf_priority instead of priority — so there's zero chance of collision with future Frappe updates.
+
+**Explain patching order: if Patch 1 creates a Custom Field and Patch 2 reads it, why must they be separate entries in patches.txt and never merged?**
+
+bench migrate runs patches one by one in order, and commits each one before moving to the next.
+If you merge Patch 1 (create field) and Patch 2 (read field) into one function, the column doesn't exist yet when the read runs — crash.
+Keep them separate so Patch 1 fully finishes and commits first, then Patch 2 runs safely knowing the column is already there.
+
+**G1**
+
+**What is the _qf_patched guard for? What breaks without it?**
+
+The guard prevents the patch from being applied more than once. Without it, every time apply_all() is called, it wraps get_url inside another wrapper — so after 3 calls your URL becomes "cdn.cdn.cdn.http://localhost" instead of "cdn.http://localhost".
+
+**2. Why isolate in monkey_patches.py instead of __init__.py?**
+
+__init__.py runs every single time Python imports your app - during bench migrate, tests, CLI commands, worker startup — even when you don't want patches applied. monkey_patches.py only runs when you explicitly call apply_all(), giving you full control over when patches are applied.
+
+**What is the correct escalation path: try doc_events first - then override_doctype_class - then override_whitelisted_methods - then monkey patch. Why is this the order?**
+
+doc_events → safest, always try this first
+override_doctype_class → when you need more control
+override_whitelisted_methods → when you need to replace an API function
+monkey patch → last resort, dangerous, avoid if possible
+
+**Why frappe.call inside validate (before_save) doesn't work**
+
+frappe.call is ASYNC — it sends HTTP request and waits for response.
+But validate/before_save is SYNC — Frappe doesn't wait for async calls.
+
+So by the time frappe.call gets response from server,
+form is already saved and validate has finished.
+Your async result arrives too late — it's ignored.
+
+Rule: Never use frappe.call inside before_save/validate client event.
+Use frappe.db.get_value or frm.set_query instead — they work synchronously.
+
+**Use onload or refresh for async data fetches**
+
+onload  → use for one-time async setup (realtime listeners, initial data fetch)
+refresh → use for UI updates that depend on current doc state
+
+Both fire AFTER form is ready — so async calls work safely here.
+frappe.call inside refresh is fine because user is just viewing,
+not in the middle of a save operation.
+
+**H3**
+
+**What is a Tree DocType?**
+
+A Tree DocType is a DocType that has parent-child hierarchy — records can contain other records like a folder structure. Example: Account in ERPNext has parent accounts, Employee has reporting manager hierarchy.
+
+**What is doctype_tree_js used for?**
+
+It's a JS file that customizes the tree view of a DocType — adding buttons, actions, or custom behavior when navigating the tree.
+Example where it applies:
+Chart of Accounts → Account DocType uses tree view
+because accounts have parent-child relationships
+(Assets → Current Assets → Cash)
+
+**When would you use tree view?**
+
+Use tree view when:
+- Records have parent-child relationships
+- Users need to navigate hierarchy visually
+- Example: Departments, Account heads, Item Groups
+
+**Client Script DocType vs Shipped JS:**
+
+Client Script DocType is stored in the database, so a consultant can change it directly from the browser without any deployment — useful for quick site-specific tweaks like hiding a field for a specific customer. 
+
+Shipped JS lives in your app code, is version controlled in git, and needs bench build — better for permanent features since changes are tracked and reviewed. Risk of Client Script: anyone with System Manager role can accidentally modify it, and it's not in git so changes can't be rolled back.
+
+**JS Field Hiding is NOT Security:**
+
+frm.set_df_property("customer_phone", "hidden", 1) only hides the field visually in the browser — the data is still sent from server to browser. Anyone can open console and run frappe.call({method: "frappe.client.get", args: {doctype: "Job Card", name: cur_frm.doc.name}}) and see customer_phone in the response. Real security must be enforced server-side using has_permission hook or stripping sensitive fields in whitelisted methods — never trust the client!

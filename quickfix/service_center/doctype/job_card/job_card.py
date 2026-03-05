@@ -17,6 +17,10 @@ class JobCard(Document):
 			frappe.throw("Assign Technician First!!")
 
 		settings=frappe.db.get_single_value("QuickFix Settings","default_labour_change")
+		if self.assigned_technician:
+			specialization=frappe.db.get_value("Technician", self.assigned_technician,"specialization")
+			if(specialization!=self.device_type):
+				frappe.throw(f"The assigned technician is specialized in {specialization} and it doesnt match for {self.device_type}")
 		
 		self.labour_charge=settings
 		self.calculate_total()

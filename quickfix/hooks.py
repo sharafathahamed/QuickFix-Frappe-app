@@ -21,14 +21,16 @@ app_license = "mit"
 # 		"has_permission": "quickfix.api.permission.has_app_permission"
 # 	}
 # ]
-fixtures=[
+doctype_list_js = {"Job Card": "job_card_list.js"}
+
+fixtures = [
     {"dt":"Custom DocPerm"},
-    {"dt":"Role"},
+    {"dt":"Role", "filters": [["name", "in", ["QF Service Staff", "QF Technician", "QF Manager"]]]},
     {"dt":"Custom Field"},
     {"dt":"Property Setter"},
-    {"dt":"Workspace","filters":[["label","=","QuickFix"]]},
-    {"dt":"Device Type"},
-    {"dt":"QuickFix Settings"}
+    {"dt":"Workspace", "filters": [["label", "=", "QuickFix"]]},
+    {"dt":"Device Type", "filters": [["name", "in", ["Smartphone", "Laptop", "Tablet"]]]},
+    {"dt":"QuickFix Settings"},
 ]
 doc_events={
     "*":{
@@ -186,9 +188,8 @@ on_logout = "quickfix.utils.handle_logout"
 # override_doctype_class = {
 # 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
-override_whitelist_method={
-    "frappe.whitelist_methods":"quickfix.api.custom_get_count"
-
+override_whitelisted_methods = {
+    "frappe.client.get_count": "quickfix.api.custom_get_count"
 }
 # Document Events
 # ---------------
