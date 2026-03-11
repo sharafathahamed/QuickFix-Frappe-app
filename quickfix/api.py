@@ -13,6 +13,30 @@ def share_job_card(job_card_name, user_email):
     return "Shared successfully"
 
 @frappe.whitelist()
+def get_job_summary(job_card_name=None):
+    if not job_card_name:
+        job_card_name = frappe.form_dict.get("job_card_name")
+    
+    if not frappe.db.exists("Job Card", job_card_name):
+        frappe.response.http_status_code = 404
+        return {"error": "Not found"}
+    
+    doc = frappe.get_doc("Job Card", job_card_name)
+    
+    return {
+        "name": doc.name,
+        "status": doc.status,
+        "customer_name": doc.customer_name,
+        "device_type": doc.device_type,
+        "device_brand": doc.device_brand,
+        "device_model": doc.device_model,
+        "assigned_technician": doc.assigned_technician,
+        "final_amount": doc.final_amount,
+        "payment_status": doc.payment_status,
+        "delivery_date": str(doc.delivery_date) if doc.delivery_date else None
+    }
+
+@frappe.whitelist()
 def get_technician_work_summary():
     job_cards = frappe.get_all(
         "Job Card",
