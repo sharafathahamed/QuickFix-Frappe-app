@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import now_datetime
+from frappe.utils import now, now_datetime, today
 
 @frappe.whitelist()
 def updated_technician_id(old_name,new_name):
@@ -9,6 +9,46 @@ def updated_technician_id(old_name,new_name):
     #merge=True is dangerous because it combines two different records into one.
 def get_shop_name():
     return frappe.db.get_single_value("QuickFix Settings", "shop_name")
+
+def check_low_stock():
+    last_run=frappe.db.get_value(
+        "Audit Log",
+        {"action":"low_stock_check","creation":["like",f"{today()}%"]},
+        "name"
+    )
+    if last_run:
+        return
+    
+    frappe.get_doc({
+        "doctype": "Audit Log",
+        "action": "low_stock_check",
+        "doctype_name": "System",
+        "document_name": "Daily Low Stock Check",
+        "user": "Administrator",
+        "timestamp": now()
+    }).insert(ignore_permissions=True)
+    frappe.db.commit()
+
+def failing_job():
+    raise Exception("Deliberate failure for testing RQ error handling")
+    
+def get_qr_code(job_card_name):
+    import qrcode
+    import base64
+    from io import BytesIO
+    url=f"{frappe.utils.get_url()}/app/job-card/{job_card_name}"
+    qr= qrcode.make(url)
+    buffer=BytesIO()
+    qr.save(buffer,format="PNG")
+    buffer.seek(0)
+    encoded = base64.b64encode(buffer.read()).decode("utf-8")
+    return f"data:image/png;base64,{encoded}"
+
+def generate_monthly_revenue_report():
+    job_cards=frappe.get_all("Job Card",
+            filters={"status":"Delivered"},
+            fields=["name","final_amount","delivery_date"])
+    frappe.log_error("Monthly revenue report generated","Report")
 
 def format_job_id(txt):
     return f"JOB#{txt or ''}"

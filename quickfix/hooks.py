@@ -56,7 +56,8 @@ override_doctype_class={
 # ------------------
 jinja={
     "methods":[
-        "quickfix.utils.get_shop_name"
+        "quickfix.utils.get_shop_name",
+        "quickfix.utils.get_qr_code"
     ],
     "filters":[
         "quickfix.utils.format_job_id"
@@ -74,6 +75,18 @@ app_include_js = "quickfix.bundle.js"
 website_route_rules=[
     {"from_route":"/track-job","to_route":"track_job"}
 ]
+
+scheduler_events = {
+    "cron": {
+        "0 2 1 * *": [
+            "quickfix.utils.generate_monthly_revenue_report"
+        ]
+    },
+    "daily": [
+        "quickfix.utils.check_low_stock"
+    ]
+}
+
 portal_menu_items = [
 {
         "label": "Track My Job",
