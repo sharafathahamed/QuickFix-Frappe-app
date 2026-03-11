@@ -421,3 +421,31 @@ The existing indexes on tabJob Card before adding search_index were: PRIMARY on 
 
 ### Task D - Report Performance
 To enable SQL logging add "logging": 1 to site_config.json and check ~/frappe-bench/logs/web.log for query output. The slowest query in the Technician Performance Report is typically the GROUP BY aggregation across Job Cards — adding a composite index on assigned_technician, status, and delivery_date reduces query time by allowing MySQL to avoid a full table scan.
+
+## L1 - Task A - Resource API
+
+### GET /api/resource/Job Card
+Request: GET http://quickfix-dev.localhost:8000/api/resource/Job Card with session cookie auth.
+Response: 200 OK — returns a list of Job Card names like JC-2026-00037, JC-2026-00038, JC-2026-00039.
+
+### GET /api/resource/Job Card/JC-2026-00038
+Request: GET http://quickfix-dev.localhost:8000/api/resource/Job Card/JC-2026-00038 with session cookie auth.
+Response: 200 OK — returns full Job Card document including customer_name, device_type, parts_used child table, final_amount, and status.
+
+### POST /api/resource/Spare Part
+Request: POST http://quickfix-dev.localhost:8000/api/resource/Spare Part with body {"part_name":"Test Part","part_code":"TESTAPI002","unit_cost":100,"selling_price":150}.
+Response: 200 OK — returns the created Spare Part document with auto-generated name TESTAPI002-0001 and all fields populated.
+
+### PUT /api/resource/Spare Part/TESTAPI002-0001
+Request: PUT http://quickfix-dev.localhost:8000/api/resource/Spare Part/TESTAPI002-0001 with body {"selling_price":200}.
+Response: 200 OK — returns the updated document with selling_price changed from 150 to 200 and modified timestamp updated.
+
+### DELETE /api/resource/Spare Part/TESTAPI002-0001
+Request: DELETE http://quickfix-dev.localhost:8000/api/resource/Spare Part/TESTAPI002-0001 with session cookie auth.
+Response: 200 OK — returns {"data":"ok"} confirming the record was permanently deleted from the database.
+
+### Session Cookie Auth vs Token Auth
+
+Session cookie auth works by logging in once via /api/method/login, after which the server creates a session and the browser automatically attaches the cookie to every subsequent request without the user sending credentials again — this is appropriate for browser-based usage where a human is interactively logged in to the Frappe desk.
+
+Token auth sends Authorization: token api_key:api_secret in every single request header with no session or cookie involved — this is appropriate for server-to-server integrations, CI pipelines, and external apps where there is no browser and the client must authenticate programmatically on every call.
