@@ -27,7 +27,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Sales Invoice",
+   "options": "Service Invoice",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
@@ -88,7 +88,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-25 12:25:12.610712",
+ "modified": "2026-03-07 01:14:00.441141",
  "modified_by": "Administrator",
  "module": "Service Center",
  "name": "Service Invoice",
