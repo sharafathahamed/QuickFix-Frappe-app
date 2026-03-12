@@ -101,3 +101,43 @@ def handle_logout(login_manager):
         "user": user,
         "timestamp": now_datetime(),
     }).insert(ignore_permissions=True)
+
+def send_webhook(job_card_name, retry_count=0):
+    import requests,json,hashlib
+    settings=frappe.get_single("QuickFix Settings")
+    if not settings.webhook_url:
+        return
+    doc = frappe.get_doc("Job Card", job_card_name)
+    payload={
+        "event":"job_submitted",
+        "job_card": doc.name,
+        "amount": doc.final_amount
+    }
+    webhook_id=hashlib.md5(
+        f"{doc.name}job_submitted".encode()
+    ).hexdigest()
+    if frappe.db.exists("Audit Log",{"action":"webhook_sent","document_name":webhook_id}):
+        return
+    try:
+        r=requests.post(settings.webhook_url,json=payload,timeout=5)
+        r.raise_for_status()
+        frappe.get_doc({
+            "doctype": "Audit Log",
+            "doctype_name": "Job Card",
+            "document_name": webhook_id,
+            "action": "webhook_sent",
+            "user": "Administrator"
+        }).insert(ignore_permissions=True)
+        frappe.db.commit()
+    except Exception as e:
+        frappe.log_error(f"Webhook failed: {e}", "Webhook Error")
+        if retry_count < 3:
+            frappe.enqueue(
+                "quickfix.utils.send_webhook",
+                queue="short",
+                job_card_name=job_card_name,
+                retry_count=retry_count + 1,
+                enqueue_after_commit=True,
+                at_front=False,
+                eta=60 
+            )

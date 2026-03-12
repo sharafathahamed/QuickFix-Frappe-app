@@ -299,7 +299,6 @@ Client Script DocType is stored in the database, so a consultant can change it d
 Shipped JS lives in your app code, is version controlled in git, and needs bench build — better for permanent features since changes are tracked and reviewed. Risk of Client Script: anyone with System Manager role can accidentally modify it, and it's not in git so changes can't be rolled back.
 
 **JS Field Hiding is NOT Security:**
-
 frm.set_df_property("customer_phone", "hidden", 1) only hides the field visually in the browser — the data is still sent from server to browser. Anyone can open console and run frappe.call({method: "frappe.client.get", args: {doctype: "Job Card", name: cur_frm.doc.name}}) and see customer_phone in the response. Real security must be enforced server-side using has_permission hook or stripping sensitive fields in whitelisted methods — never trust the client!
 
 **Demonstrate and explain the issues and solutions with respect to f-string SQL and the parameterized pattern.**
@@ -449,3 +448,100 @@ Response: 200 OK — returns {"data":"ok"} confirming the record was permanently
 Session cookie auth works by logging in once via /api/method/login, after which the server creates a session and the browser automatically attaches the cookie to every subsequent request without the user sending credentials again — this is appropriate for browser-based usage where a human is interactively logged in to the Frappe desk.
 
 Token auth sends Authorization: token api_key:api_secret in every single request header with no session or cookie involved — this is appropriate for server-to-server integrations, CI pipelines, and external apps where there is no browser and the client must authenticate programmatically on every call.
+
+### Task - D
+
+Risks of allow_guest=True:
+1.API Abuse - Attackers can again and again call the API and overload the server.
+2.Data Scraping - Public APIs may expose data that attackers can scrape.
+3.Denial of Service (DoS) - High volumes of requests can slow down or crash the system.
+
+### M1 - Server Script Doctype
+
+**1. Python functions/modules blocked in the Server Script sandbox**
+
+Server Scripts run in a restricted sandbox environment for security purposes. Certain Python modules such as `os`, `sys`, `subprocess`, `socket`, `shutil`, and `requests` are not permitted. Potentially unsafe built-in functions like `open()`, `eval()`, `exec()`, `compile()`, and `__import__()` are also restricted to prevent unauthorized system access or unsafe execution.
+
+**2. Three things you cannot do in a Server Script**
+
+1. Access the server file system (for example reading or writing files).  
+2. Execute operating system level commands.  
+3. Import external Python libraries or restricted modules.
+
+**3. When Server Scripts are acceptable vs when to use App Code**
+
+**Acceptable:**
+- Simple automation tasks such as automatically updating a field before saving a document.
+- Small internal APIs or lightweight reporting logic.
+
+**Use App Code when:**
+- Implementing complex business logic involving multiple DocTypes.
+- Integrating with external services such as APIs, payment gateways, or messaging systems.
+
+**4. Governance / Maintainability risks**
+
+Server Scripts are stored directly in the database instead of being tracked in version control systems like Git. Because of this, changes are harder to audit, review, and maintain. Since they can also be modified directly through the UI, there is a risk of untracked changes affecting production environments.
+
+---
+
+### M2 - Caching, Redis & Cache Invalidation
+
+### Task - A
+
+Frappe uses Redis as a caching layer to improve system performance by storing frequently accessed data.
+
+Examples of data cached in Redis include:
+
+1. **Bootinfo** – Stores user session details such as roles, permissions, modules, and system defaults required during UI loading.  
+2. **DocType Metadata** – Contains the structure of DocTypes including fields, properties, and permission settings.  
+3. **Website Context** – Cached context used when rendering website pages.  
+4. **Translations** – Language translation data used in the frontend interface.  
+5. **User Permissions** – Cached permission rules that reduce repeated database queries.
+
+Running `frappe.clear_cache()` removes these cached values so that Frappe rebuilds them from the database.
+
+---
+
+### Task - C
+
+If the browser continues to display outdated JavaScript after making changes, the issue is usually caused by cached frontend assets.
+
+To refresh the assets, run:
+
+```
+bench build --app quickfix
+```
+
+This command rebuilds the JavaScript and frontend assets for the **quickfix** app so the browser loads the latest version.
+
+If the problem persists, restart the services using:
+
+```
+bench restart
+```
+
+Restarting ensures that runtime caches are cleared and the updated assets are loaded correctly.
+
+When a **DocType structure changes**, stale UI issues may occur due to cached metadata. Clearing the cache or restarting services forces the system to regenerate the form layout so the UI reflects the latest DocType configuration.
+
+## M3 - Logging, Error Handling & Observability
+
+### Task C — Debugging stale UI
+
+**Stale JS after a JS file change:**
+Run `bench build --app quickfix` to recompile and bundle assets.
+Frappe appends a content hash to asset filenames, forcing the browser
+to download the new file instead of using its cached copy.
+
+**Stale field labels after a DocType change:**
+Run `bench --site quickfix-dev.localhost clear-cache` or call
+`frappe.clear_cache()` in bench console. This clears the DocType
+metadata cache in Redis.
+
+### Task C — Production debugging without developer_mode
+
+1. Check **Setup → Error Log** — all unhandled exceptions logged here
+   with full tracebacks even when developer_mode is off
+2. Check **Audit Log** — trace exact sequence of events
+3. Check `frappe-bench/logs/quickfix.log` — named logger output
+   with timestamps to reconstruct sequence of events

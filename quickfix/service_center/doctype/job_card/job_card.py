@@ -32,6 +32,7 @@ class JobCard(Document):
 			parts_total+=row.total_price
 		self.parts_total=parts_total
 		self.final_amount = self.parts_total + self.labour_charge
+		self.amount=self.final_amount
 		
 	def before_print(self, settings=None):
 		self.print_summary = f"{self.customer_name} - {self.device_brand} {self.device_model}"
@@ -46,6 +47,11 @@ class JobCard(Document):
 				frappe.throw(f"Insufficient Stock for {part_label}. Available: {curr_stck}, Required: {row.quantity}")
 
 	def on_submit(self):
+		frappe.enqueue(
+			"quickfix.utils.send_webhook",
+			queue="short",
+			job_card_name=self.name
+		)
 		for row in self.parts_used:
 			curr_stk=frappe.db.get_value("Spare Part",row.part,"stock_qty")
 			
@@ -53,6 +59,7 @@ class JobCard(Document):
 					   row.part,
 					   "stock_qty",
 					   flt(curr_stk)-flt(row.quantity))
+			
 		invoice= frappe.get_doc({
 			"doctype":"Service Invoice",
 			"job_card":self.name,
@@ -79,3 +86,6 @@ class JobCard(Document):
 	def on_trash(self):
 		if self.status not in ["Draft", "Cancelled"]:
 			frappe.throw("You can only delete only if you cancel")
+	
+	def on_update(self):
+		frappe.cache().delete_value("quickfix_status_chart_data")
