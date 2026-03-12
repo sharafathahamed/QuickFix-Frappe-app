@@ -2,6 +2,8 @@ import frappe
 from frappe.client import get_count as original_get_count
 from frappe.utils import now_datetime
 
+logger = frappe.logger("quickfix", allow_site=True)
+
 @frappe.whitelist()
 def share_job_card(job_card_name, user_email):
     frappe.share.add(
@@ -13,6 +15,122 @@ def share_job_card(job_card_name, user_email):
     return "Shared successfully"
 
 @frappe.whitelist()
+def send_webhook(job_card_name):
+    logger.info(f"Webhook triggered for {job_card_name}")
+    
+    settings = frappe.get_single("QuickFix Settings")
+    if not settings.webhook_url:
+        logger.warning(f"No webhook URL configured, skipping for {job_card_name}")
+        return
+
+    import requests
+    try:
+        doc = frappe.get_doc("Job Card", job_card_name)
+        payload = {
+            "event": "job_submitted",
+            "job_card": doc.name,
+            "amount": doc.final_amount
+        }
+        r = requests.post(settings.webhook_url, json=payload, timeout=5)
+        r.raise_for_status()
+        logger.info(f"Webhook sent successfully for {job_card_name}")
+
+    except Exception as e:
+        logger.error(f"Webhook failed for {job_card_name}: {e}")
+        frappe.log_error(
+            title="Webhook Error",
+            message=frappe.get_traceback()
+        )
+
+@frappe.whitelist()
+def trigger_test_error():
+    frappe.enqueue(
+        "quickfix.api.failing_background_job",
+        queue="short"
+    )
+
+def failing_background_job():
+    raise Exception("Test background job failure for M3")
+
+@frappe.whitelist()
+def get_status_chart_data():
+    cache_key = "quickfix_status_chart_data"
+    cached = frappe.cache().get_value(cache_key)
+    if cached:
+        return cached
+    statuses = [
+        "Draft", "Pending Diagnosis", "Awaiting Customer Approval",
+        "In Repair", "Ready for Delivery", "Delivered", "Cancelled"
+    ]
+    values = []
+    for status in statuses:
+        count = frappe.db.count("Job Card", {"status": status})
+        values.append(count)
+    data = {
+        "labels": statuses,
+        "datasets": [{"name": "Job Cards", "values": values}]
+    }
+    frappe.cache().set_value(cache_key, data, expires_in_sec=300)
+    return data
+
+@frappe.whitelist(allow_guest=True)
+def get_job_by_phone(phone):
+    import re
+    if not phone or not re.match(r"^\d{10}$", str(phone)):
+        frappe.throw("Invalid phone number. Must be exactly 10 digits.")
+    ip = frappe.local.request_ip
+    cache_key = f"rate_limit_{ip}"
+    count = frappe.cache().get_value(cache_key) or 0
+    
+    if int(count) >= 10:
+        frappe.throw("Too many requests. Please try again later.")
+    
+    frappe.cache().set_value(cache_key, int(count) + 1, expires_in_sec=60)
+    
+    exists = frappe.db.exists("Job Card", {"customer_phone": phone})
+    if not exists:
+        frappe.throw("No jobs found for this phone number.")
+    
+    jobs = frappe.get_all("Job Card",
+        filters={"customer_phone": phone},
+        fields=["name", "status", "device_type", "device_brand", "creation"]
+    )
+    return jobs
+
+@frappe.whitelist(allow_guest=True)
+def payment_webhook():
+    import hmac, hashlib, json
+    payload = frappe.request.data
+    secret = frappe.conf.get("payment_webhook_secret", "")
+    signature=frappe.get_request_header("X-Signature")
+    expected=hmac.new(secret.encode(),payload,hashlib.sha256).hexdigest()
+    
+    if not hmac.compare_digest(expected,signature or ""):
+        frappe.throw("Invalid signature", frappe.AuthenticationError)
+    
+    data = json.loads(payload)
+    
+    if frappe.db.exists("Audit Log", {
+        "action": "payment_received",
+        "document_name": data.get("ref")
+    }):
+        return {"status": "duplicate", "message": "Already processed"}
+    
+    if data.get("job_card"):
+        frappe.db.set_value("Job Card", data["job_card"], "payment_status", "Paid")
+    
+    frappe.get_doc({
+        "doctype": "Audit Log",
+        "doctype_name": "Job Card",
+        "document_name": data.get("ref"),
+        "action": "payment_received",
+        "user": "Administrator"
+    }).insert(ignore_permissions=True)
+    
+    frappe.db.commit()
+    return {"status": "ok"}
+
+@frappe.whitelist(methods=["GET", "POST"])
 def get_job_summary(job_card_name=None):
     if not job_card_name:
         job_card_name = frappe.form_dict.get("job_card_name")
@@ -30,10 +148,7 @@ def get_job_summary(job_card_name=None):
         "device_type": doc.device_type,
         "device_brand": doc.device_brand,
         "device_model": doc.device_model,
-        "assigned_technician": doc.assigned_technician,
-        "final_amount": doc.final_amount,
-        "payment_status": doc.payment_status,
-        "delivery_date": str(doc.delivery_date) if doc.delivery_date else None
+        "assigned_technician": doc.assigned_technician
     }
 
 @frappe.whitelist()
@@ -81,7 +196,7 @@ def bulk_insert_audit_logs():
     records = []
     for i in range(50):
         records.append([
-            f"BULK-TEST-{i}",
+            f"BULK-TEST-{frappe.generate_hash(length=6)}",
             "Job Card",
             f"TEST-{i}",
             "bulk_test",
@@ -90,7 +205,8 @@ def bulk_insert_audit_logs():
     frappe.db.bulk_insert(
         "Audit Log",
         fields=["name", "doctype_name", "document_name", "action", "user"],
-        values=records
+        values=records,
+        ignore_duplicates=True
     )
     frappe.db.commit()
     bulk_time = time.time() - start
@@ -164,3 +280,33 @@ def get_status_chart_data():
         "labels": statuses,
         "datasets": [{"name": "Job Cards", "values": values}]
     }
+
+# UNSAFE - f-string SQL (NEVER do this)
+@frappe.whitelist()
+def unsafe_search(customer_name):
+    # VULNERABLE TO SQL INJECTION
+    results = frappe.db.sql(f"""
+        SELECT name, customer_name, status 
+        FROM `tabJob Card`
+        WHERE customer_name = '{customer_name}'
+    """, as_dict=True)
+    return results
+
+@frappe.whitelist()
+def safe_search(customer_name):
+    results = frappe.db.sql("""
+        SELECT name, customer_name, status 
+        FROM `tabJob Card`
+        WHERE customer_name = %s
+    """, (customer_name,), as_dict=True)
+    return results
+
+@frappe.whitelist()
+def escaped_search(customer_name):
+    escaped = frappe.db.escape(customer_name)
+    results = frappe.db.sql(f"""
+        SELECT name, customer_name, status
+        FROM `tabJob Card`
+        WHERE customer_name = {escaped}
+    """, as_dict=True)
+    return results

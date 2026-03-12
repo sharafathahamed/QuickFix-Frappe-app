@@ -33,6 +33,7 @@
   "remarks",
   "status",
   "naming_series",
+  "amount",
   "amended_from"
  ],
  "fields": [
@@ -114,11 +115,11 @@
    "label": "Assignment and Diagnosis"
   },
   {
-    "fieldname": "assigned_technician",
-    "fieldtype": "Link",
-    "label": "Assigned Technician",
-    "options": "Technician",
-    "search_index": 1
+   "fieldname": "assigned_technician",
+   "fieldtype": "Link",
+   "label": "Assigned Technician",
+   "options": "Technician",
+   "search_index": 1
   },
   {
    "depends_on": "eval: doc.assigned_technician",
@@ -201,13 +202,18 @@
    "fieldtype": "Table",
    "label": "Parts Used",
    "options": "Past Usage Entry"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Float",
+   "label": "Amount"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-05 14:32:33.530804",
+ "modified": "2026-03-11 17:32:07.963344",
  "modified_by": "Administrator",
  "module": "Service Center",
  "name": "Job Card",
