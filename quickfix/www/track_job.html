@@ -1,26 +1,40 @@
-{% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-{% endif %}
+{% extends "templates/web.html" %}
 
-{% if jobs %}
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Job ID</th>
-                <th>Status</th>
-                <th>Device</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for job in jobs %}
-            <tr>
-                <td>{{ job.name }}</td>
-                <td>{{ job.status }}</td>
-                <td>{{ job.device_brand }} {{ job.device_type }}</td>
-                <td>{{ job.creation }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% endif %}
+{% block page_content %}
+<div class="container mt-4">
+    <h2>Track My Job</h2>
+    
+    <form method="get" action="/track-job">
+        <div class="form-group">
+            <label>Enter your Job ID</label>
+            <input type="text" 
+                   name="job_id" 
+                   class="form-control" 
+                   placeholder="e.g. JC-2026-00001"
+                   value="{{ job_id or '' }}">
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Track Job</button>
+    </form>
+
+    {% if job_id %}
+        {% set job = frappe.db.get_value("Job Card", job_id, ["name", "status", "device_type", "device_brand", "customer_name", "creation"], as_dict=True) %}
+        
+        {% if job %}
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5>Job: {{ job.name }}</h5>
+                <p><strong>Status:</strong> {{ job.status }}</p>
+                <p><strong>Device:</strong> {{ job.device_brand }} {{ job.device_type }}</p>
+                <p><strong>Customer:</strong> {{ job.customer_name }}</p>
+                <p><strong>Created:</strong> {{ job.creation }}</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-danger mt-3">
+            No job found with ID: {{ job_id }}
+        </div>
+        {% endif %}
+    {% endif %}
+
+</div>
+{% endblock %}
