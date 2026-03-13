@@ -545,3 +545,27 @@ metadata cache in Redis.
 2. Check **Audit Log** — trace exact sequence of events
 3. Check `frappe-bench/logs/quickfix.log` — named logger output
    with timestamps to reconstruct sequence of events
+
+## N1 Task C — ignore_permissions analysis
+
+### Every place ignore_permissions=True is used:
+
+1. `job_card.py on_submit → frappe.db.set_value (stock deduction)`
+   System-initiated stock deduction triggered by job submission,
+   not a direct user request to edit Spare Part records.
+
+2. `job_card.py on_submit → invoice.insert(ignore_permissions=True)`
+   Service Invoice is auto-created as a system consequence of submission,
+   not a user manually creating an invoice.
+
+3. `job_card.py on_cancel → invoice.cancel()`
+   Invoice cancellation is a system consequence of job cancellation,
+   not a user directly cancelling the invoice.
+
+### What if a malicious intern did this:
+
+@frappe.whitelist(allow_guest=True)
+def evil_endpoint():
+    frappe.get_doc("User", "Administrator").ignore_permissions = True
+    # Now ANY anonymous internet user can read, write, delete
+    # ANY record in the entire database with zero authentication.

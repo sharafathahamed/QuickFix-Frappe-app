@@ -2,8 +2,11 @@
 # For license information, please see license.txt
 
 import frappe
+import logging
 from frappe.model.document import Document
 from frappe.utils import flt
+
+logger = logging.getLogger(__name__)
 
 class JobCard(Document):
 	def validate(self):
@@ -56,22 +59,56 @@ class JobCard(Document):
 			curr_stk=frappe.db.get_value("Spare Part",row.part,"stock_qty")
 			
 			frappe.db.set_value("Spare Part",
-					   row.part,
-					   "stock_qty",
-					   flt(curr_stk)-flt(row.quantity))
+						row.part,
+						"stock_qty",
+						flt(curr_stk)-flt(row.quantity))
 			
 		invoice= frappe.get_doc({
 			"doctype":"Service Invoice",
 			"job_card":self.name,
 			"labour_charge": self.labour_charge,
-            "parts_total": self.parts_total,
-            "total_amount": self.final_amount
+			"parts_total": self.parts_total,
+			"total_amount": self.final_amount
 		})
 		invoice.insert(ignore_permissions=True)
 		frappe.publish_realtime("job_ready",{
 			"job": self.name
-		},user=self.owner)
+			},user=self.owner)
 		frappe.enqueue("quickfix.utils.send_job_ready_email", queue="short",job_card=self.name)
+		self.send_completion_email()
+	def send_completion_email(self):
+		try:
+			# Correct way in Frappe 15
+			pdf = frappe.get_print(
+				doctype="Job Card",
+				name=self.name,
+				print_format="Job Card Receipt",
+				as_pdf=True
+			)
+			
+			frappe.sendmail(
+				recipients=[self.customer_email],
+				subject=f"Job Card {self.name} - Ready for Delivery",
+				message=f"""
+					Dear {self.customer_name},<br><br>
+					Your device is ready for delivery.<br>
+					Job ID: {self.name}<br>
+					Total Amount: {self.final_amount}<br><br>
+					Regards
+				""",
+				attachments=[{
+					"fname": f"{self.name}.pdf",
+					"fcontent": pdf
+				}]
+			)
+			frappe.logger("quickfix").info(f"Completion email sent for {self.name}")
+			
+		except Exception as e:
+			frappe.logger("quickfix").error(f"Email failed for {self.name}: {e}")
+			frappe.log_error(
+				title="Job Completion Email Failed",
+				message=frappe.get_traceback()
+			)
 
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
@@ -86,6 +123,6 @@ class JobCard(Document):
 	def on_trash(self):
 		if self.status not in ["Draft", "Cancelled"]:
 			frappe.throw("You can only delete only if you cancel")
-	
+
 	def on_update(self):
 		frappe.cache().delete_value("quickfix_status_chart_data")

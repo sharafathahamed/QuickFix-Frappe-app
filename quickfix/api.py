@@ -310,3 +310,29 @@ def escaped_search(customer_name):
         WHERE customer_name = {escaped}
     """, as_dict=True)
     return results
+
+@frappe.whitelist(allow_guest=True)
+def track_job_by_phone(phone=None):
+    import re
+    
+    if not phone or not re.match(r"^\d{10}$", str(phone)):
+        frappe.throw("Invalid phone number. Must be exactly 10 digits.")
+    
+    ip = frappe.local.request_ip
+    cache_key = f"track_job_rate_{ip}"
+    count = frappe.cache().get_value(cache_key) or 0
+
+    if int(count) >= 10:
+        frappe.throw("Too many requests. Please try again later.")
+
+    frappe.cache().set_value(cache_key, int(count) + 1, expires_in_sec=60)
+
+    exists = frappe.db.exists("Job Card", {"customer_phone": phone})
+    if not exists:
+        frappe.throw("No jobs found for this phone number.")
+
+    jobs = frappe.get_all("Job Card",
+        filters={"customer_phone": phone},
+        fields=["name", "status", "device_type", "device_brand", "creation"]
+    )
+    return jobs
