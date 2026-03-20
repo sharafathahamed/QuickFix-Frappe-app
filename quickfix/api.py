@@ -17,7 +17,7 @@ def share_job_card(job_card_name, user_email):
 @frappe.whitelist()
 def send_webhook(job_card_name):
     logger.info(f"Webhook triggered for {job_card_name}")
-    
+
     settings = frappe.get_single("QuickFix Settings")
     if not settings.webhook_url:
         logger.warning(f"No webhook URL configured, skipping for {job_card_name}")
@@ -81,16 +81,16 @@ def get_job_by_phone(phone):
     ip = frappe.local.request_ip
     cache_key = f"rate_limit_{ip}"
     count = frappe.cache().get_value(cache_key) or 0
-    
+
     if int(count) >= 3:
         frappe.throw("Too many requests. Please try again later.")
-    
+
     frappe.cache().set_value(cache_key, int(count) + 1, expires_in_sec=60)
-    
+
     exists = frappe.db.exists("Job Card", {"customer_phone": phone})
     if not exists:
         frappe.throw("No jobs found for this phone number.")
-    
+
     jobs = frappe.get_all("Job Card",
         filters={"customer_phone": phone},
         fields=["name", "status", "device_type", "device_brand", "creation"]
@@ -99,26 +99,28 @@ def get_job_by_phone(phone):
 
 @frappe.whitelist(allow_guest=True)
 def payment_webhook():
-    import hmac, hashlib, json
+    import hashlib
+    import hmac
+    import json
     payload = frappe.request.data
     secret = frappe.conf.get("payment_webhook_secret", "")
     signature=frappe.get_request_header("X-Signature")
     expected=hmac.new(secret.encode(),payload,hashlib.sha256).hexdigest()
-    
+
     if not hmac.compare_digest(expected,signature or ""):
         frappe.throw("Invalid signature", frappe.AuthenticationError)
-    
+
     data = json.loads(payload)
-    
+
     if frappe.db.exists("Audit Log", {
         "action": "payment_received",
         "document_name": data.get("ref")
     }):
         return {"status": "duplicate", "message": "Already processed"}
-    
+
     if data.get("job_card"):
         frappe.db.set_value("Job Card", data["job_card"], "payment_status", "Paid")
-    
+
     frappe.get_doc({
         "doctype": "Audit Log",
         "doctype_name": "Job Card",
@@ -126,7 +128,7 @@ def payment_webhook():
         "action": "payment_received",
         "user": "Administrator"
     }).insert(ignore_permissions=True)
-    
+
     frappe.db.commit()
     return {"status": "ok"}
 
@@ -134,13 +136,13 @@ def payment_webhook():
 def get_job_summary(job_card_name=None):
     if not job_card_name:
         job_card_name = frappe.form_dict.get("job_card_name")
-    
+
     if not frappe.db.exists("Job Card", job_card_name):
         frappe.response.http_status_code = 404
         return {"error": "Not found"}
-    
+
     doc = frappe.get_doc("Job Card", job_card_name)
-    
+
     return {
         "name": doc.name,
         "status": doc.status,
@@ -177,7 +179,7 @@ def cancel_old_draft_jobs():
     import time
     start = time.time()
     frappe.db.sql("""
-        UPDATE `tabJob Card` 
+        UPDATE `tabJob Card`
         SET status = 'Cancelled'
         WHERE status = 'Draft'
         AND creation < DATE_SUB(NOW(), INTERVAL 365 DAY)
@@ -191,7 +193,7 @@ def cancel_old_draft_jobs():
 @frappe.whitelist()
 def bulk_insert_audit_logs():
     import time
-    
+
     start = time.time()
     records = []
     for i in range(50):
@@ -265,7 +267,7 @@ def transfer_technician(job_card, new_technician):
 def unsafe_search(customer_name):
     # VULNERABLE TO SQL INJECTION
     results = frappe.db.sql(f"""
-        SELECT name, customer_name, status 
+        SELECT name, customer_name, status
         FROM `tabJob Card`
         WHERE customer_name = '{customer_name}'
     """, as_dict=True)
@@ -274,7 +276,7 @@ def unsafe_search(customer_name):
 @frappe.whitelist()
 def safe_search(customer_name):
     results = frappe.db.sql("""
-        SELECT name, customer_name, status 
+        SELECT name, customer_name, status
         FROM `tabJob Card`
         WHERE customer_name = %s
     """, (customer_name,), as_dict=True)
@@ -293,10 +295,10 @@ def escaped_search(customer_name):
 @frappe.whitelist(allow_guest=True)
 def track_job_by_phone(phone=None):
     import re
-    
+
     if not phone or not re.match(r"^\d{10}$", str(phone)):
         frappe.throw("Invalid phone number. Must be exactly 10 digits.")
-    
+
     ip = frappe.local.request_ip
     cache_key = f"track_job_rate_{ip}"
     count = frappe.cache().get_value(cache_key) or 0

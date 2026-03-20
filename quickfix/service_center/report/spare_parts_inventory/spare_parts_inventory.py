@@ -5,7 +5,6 @@ import frappe
 from frappe.utils import flt
 
 
-
 def execute(filters=None):
     columns = get_column()
     data = get_data()

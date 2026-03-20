@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 
+
 def after_install():
     default_types=["Laptop","SmartPhone","Tablet"]
     for def_type in default_types:
@@ -26,11 +27,10 @@ def after_install():
     })
 
     frappe.db.commit()
-    
+
     frappe.msgprint(_("Quickfix app is succesfully installed with default setting"))
 def before_uninstall():
     if frappe.db.exists("Job Card", {"docstatus": 0}):
         frappe.throw(("Cancel draft Job Cards before uninstall"),
                      frappe.ValidationError
 )
- 

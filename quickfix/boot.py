@@ -1,5 +1,6 @@
 import frappe
 
+
 def extend_bootinfo(bootinfo):
     try:
         settings = frappe.get_cached_doc("QuickFix Settings", "QuickFix Settings")
