@@ -1,0 +1,14 @@
+[
+  {
+    "doctype": "Role",
+    "role_name": "QF Manager"
+  },
+  {
+    "doctype": "Role",
+    "role_name": "QF Technician"
+  },
+  {
+    "doctype": "Role",
+    "role_name": "QF Service Staff"
+  }
+]

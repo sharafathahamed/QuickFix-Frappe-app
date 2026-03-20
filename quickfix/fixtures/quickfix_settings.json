@@ -1,6 +1,6 @@
 [
  {
-  "default_labour_change": 500.0,
+  "default_labour_charge": 500.0,
   "docstatus": 0,
   "doctype": "QuickFix Settings",
   "low_stock_alert_enabled": 1,

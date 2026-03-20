@@ -8,7 +8,7 @@
   "quickfix_settings_section",
   "shop_name",
   "manager_email",
-  "default_labour_change",
+  "default_labour_charge",
   "low_stock_alert_enabled",
   "low_stock_threshold",
   "webhook_url"
@@ -32,12 +32,6 @@
    "reqd": 1
   },
   {
-   "default": "500",
-   "fieldname": "default_labour_change",
-   "fieldtype": "Currency",
-   "label": "Default Labour Change"
-  },
-  {
    "default": "1",
    "fieldname": "low_stock_alert_enabled",
    "fieldtype": "Check",
@@ -52,13 +46,19 @@
    "fieldname": "webhook_url",
    "fieldtype": "Data",
    "label": "Webhook Url"
+  },
+  {
+   "default": "500",
+   "fieldname": "default_labour_charge",
+   "fieldtype": "Currency",
+   "label": "Default Labour Charge"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-03-11 14:22:37.102070",
+ "modified": "2026-03-17 16:50:39.509332",
  "modified_by": "Administrator",
  "module": "Service Center",
  "name": "QuickFix Settings",

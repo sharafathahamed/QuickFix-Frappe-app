@@ -1,0 +1,20 @@
+[
+  {
+    "doctype": "Device Type",
+    "device_type": "Smartphone",
+    "description": "Mobile phones and smartphones",
+    "average_repair_hours": 2
+  },
+  {
+    "doctype": "Device Type",
+    "device_type": "Laptop",
+    "description": "Laptops and notebooks",
+    "average_repair_hours": 4
+  },
+  {
+    "doctype": "Device Type",
+    "device_type": "Tablet",
+    "description": "Tablets and iPads",
+    "average_repair_hours": 3
+  }
+]

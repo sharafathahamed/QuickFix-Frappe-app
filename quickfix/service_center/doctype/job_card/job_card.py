@@ -19,7 +19,7 @@ class JobCard(Document):
 		if status not in ["Draft","Pending Diagnosis","Awaiting Customer Approval"] and not self.assigned_technician:
 			frappe.throw("Assign Technician First!!")
 
-		settings=frappe.db.get_single_value("QuickFix Settings","default_labour_change")
+		settings=frappe.db.get_single_value("QuickFix Settings","default_labour_charge")
 		if self.assigned_technician:
 			specialization=frappe.db.get_value("Technician", self.assigned_technician,"specialization")
 			if(specialization!=self.device_type):
@@ -39,6 +39,17 @@ class JobCard(Document):
 		
 	def before_print(self, settings=None):
 		self.print_summary = f"{self.customer_name} - {self.device_brand} {self.device_model}"
+		
+		if self.device_type:
+			try:
+				device_doc = frappe.get_cached_doc("Device Type", self.device_type)
+				self.device_type_description = device_doc.description
+				self.device_avg_repair_hours = device_doc.average_repair_hours
+			except frappe.DoesNotExistError:
+				pass
+
+		if self.assigned_technician:
+			self.technician_name = frappe.db.get_value("Technician", self.assigned_technician, "technician_name")
 
 	def before_submit(self):
 		if self.status!="Ready for Delivery":
@@ -48,6 +59,7 @@ class JobCard(Document):
 			if flt(curr_stck)<flt(row.quantity):
 				part_label = row.data or row.part
 				frappe.throw(f"Insufficient Stock for {part_label}. Available: {curr_stck}, Required: {row.quantity}")
+				part_label = row.data or row.part
 
 	def on_submit(self):
 		frappe.enqueue(
@@ -78,7 +90,6 @@ class JobCard(Document):
 		self.send_completion_email()
 	def send_completion_email(self):
 		try:
-			# Correct way in Frappe 15
 			pdf = frappe.get_print(
 				doctype="Job Card",
 				name=self.name,

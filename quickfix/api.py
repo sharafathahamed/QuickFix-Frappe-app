@@ -82,7 +82,7 @@ def get_job_by_phone(phone):
     cache_key = f"rate_limit_{ip}"
     count = frappe.cache().get_value(cache_key) or 0
     
-    if int(count) >= 10:
+    if int(count) >= 3:
         frappe.throw("Too many requests. Please try again later.")
     
     frappe.cache().set_value(cache_key, int(count) + 1, expires_in_sec=60)
@@ -169,7 +169,7 @@ def get_technician_work_summary():
     for jc in job_cards:
         tech = tech_map.get(jc.assigned_technician)
         if tech:
-            print(tech.technician_name, tech.phone)
+            return tech.technician_name, tech.phone
 
 
 @frappe.whitelist()
