@@ -9,18 +9,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-22.04
+    env:
+      CI: "Yes"
+      FRAPPE_REDIS_CACHE: redis://127.0.0.1:6379
+      FRAPPE_REDIS_QUEUE: redis://127.0.0.1:6379
+      FRAPPE_REDIS_SOCKETIO: redis://127.0.0.1:6379
 
     services:
       mariadb:
         image: mariadb:10.6
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_CHARACTER_SET_SERVER: utf8mb4
-          MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+          MARIADB_ROOT_PASSWORD: root
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -uroot -proot"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
@@ -52,13 +55,24 @@ jobs:
         run: |
           bench init frappe-bench \
             --frappe-branch version-15 \
+            --skip-redis-config-generation \
             --skip-assets \
             --python python3
+
+      - name: Configure bench services
+        run: |
+          cd frappe-bench
+          bench set-config -g redis_cache "$FRAPPE_REDIS_CACHE"
+          bench set-config -g redis_queue "$FRAPPE_REDIS_QUEUE"
+          bench set-config -g redis_socketio "$FRAPPE_REDIS_SOCKETIO"
 
       - name: Create site
         run: |
           cd frappe-bench
           bench new-site test.localhost \
+            --db-host 127.0.0.1 \
+            --db-port 3306 \
+            --db-root-username root \
             --mariadb-root-password root \
             --admin-password admin \
             --db-name test_quickfix \
@@ -78,6 +92,7 @@ jobs:
         run: |
           cd frappe-bench
           bench --site test.localhost set-config developer_mode 1
+          bench --site test.localhost set-config allow_tests true
 
       - name: Load test fixtures
         run: |

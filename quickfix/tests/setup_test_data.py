@@ -13,6 +13,8 @@ def load_test_fixtures():
         "test_roles.json",
     ]
 
+    fixture_errors = []
+
     for filename in fixture_files:
         filepath = os.path.join(fixtures_path, filename)
         with open(filepath, "r") as f:
@@ -24,9 +26,7 @@ def load_test_fixtures():
                 doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
                 frappe.db.commit()
             except Exception as e:
-                frappe.log_error(
-                    title=f"Fixture load failed: {filename}",
-                    message=str(e),
-                )
+                fixture_errors.append(f"{filename}: {e}")
 
-    print("Test fixtures loaded successfully")
+    if fixture_errors:
+        frappe.throw("Fixture load failed:\n" + "\n".join(fixture_errors))
