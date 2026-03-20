@@ -3,13 +3,13 @@
 {% block page_content %}
 <div class="container mt-4">
     <h2>Track My Job</h2>
-    
+
     <form method="get" action="/track-job">
         <div class="form-group">
             <label>Enter your Job ID</label>
-            <input type="text" 
-                   name="job_id" 
-                   class="form-control" 
+            <input type="text"
+                   name="job_id"
+                   class="form-control"
                    placeholder="e.g. JC-2026-00001"
                    value="{{ job_id or '' }}">
         </div>
@@ -18,7 +18,7 @@
 
     {% if job_id %}
         {% set job = frappe.db.get_value("Job Card", job_id, ["name", "status", "device_type", "device_brand", "customer_name", "creation"], as_dict=True) %}
-        
+
         {% if job %}
         <div class="card mt-4">
             <div class="card-body">
