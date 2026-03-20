@@ -569,3 +569,32 @@ def evil_endpoint():
     frappe.get_doc("User", "Administrator").ignore_permissions = True
     # Now ANY anonymous internet user can read, write, delete
     # ANY record in the entire database with zero authentication.
+
+## Q1. What Linux service containers does Frappe CI need and why? What breaks if MariaDB is missing?
+
+Frappe CI needs MariaDB and Redis as service containers. MariaDB is where
+Frappe stores everything — when bench new-site runs in CI, it creates the
+database there. If MariaDB is missing, bench new-site just fails and the
+entire pipeline stops before a single test runs. Redis is needed for cache
+and queue — Frappe expects it on startup even in test mode, so without it
+the import itself crashes.
+
+## Q2. Why does ERPNext CI use --skip-assets when installing apps?
+
+Building JS and CSS bundles takes around 3 to 5 minutes and needs Node.js.
+Tests run purely in Python and never open a browser, so the built assets are
+completely useless in CI. --skip-assets just skips that step and makes the
+pipeline faster without affecting anything the tests actually care about.
+
+## Q3. What is the purpose of bench start in CI versus bench serve? Does CI need either?
+
+bench start launches everything — web, worker, scheduler, socketio. bench
+serve launches only the web server. CI needs neither of them. bench run-tests
+connects to the database directly through Frappe's Python layer and does not
+go through HTTP at all, so no server needs to be running.
+
+## Q4. What happens to the test site after the CI run completes? Is cleanup needed?
+
+GitHub spins up a temporary Linux machine for the workflow and destroys it
+the moment the run finishes. The site, the database, every file — all gone
+automatically. No cleanup step is needed.

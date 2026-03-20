@@ -24,3 +24,10 @@ class SparePart(Document):
 				title="Low Stock Warning",
 				indicator="orange"
 			)
+"""
+before_insert → before first save
+before_validate
+validate
+before_save
+after_insert (only first time)
+on_update"""

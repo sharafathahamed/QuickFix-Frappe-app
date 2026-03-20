@@ -143,7 +143,10 @@ portal_menu_items = [
 # ------------
 
 # before_install = "quickfix.install.before_install"
-after_install = "quickfix.setup.after_install"
+after_install = [
+    "quickfix.setup.after_install",
+    "quickfix.patches.apply_patches"
+]
 
 # Uninstallation
 # ------------
@@ -156,7 +159,10 @@ before_uninstall = "quickfix.setup.before_uninstall"
 # AttributeError during session boot. Update the path here and provide
 # a thin alias in utils for compatibility.
 extend_bootinfo = "quickfix.boot.extend_bootinfo"
-on_session_creation = "quickfix.utils.handle_session_creation"
+on_session_creation = [
+    "quickfix.utils.handle_session_creation",
+    "quickfix.patches.apply_patches"
+]
 on_logout = "quickfix.utils.handle_logout"
 # after_uninstall = "quickfix.uninstall.after_uninstall"
 

@@ -30,7 +30,7 @@ def after_install():
     frappe.msgprint(_("Quickfix app is succesfully installed with default setting"))
 def before_uninstall():
     if frappe.db.exists("Job Card", {"docstatus": 0}):
-        frappe.throw(_("Cancel draft Job Cards before uninstall"),
+        frappe.throw(("Cancel draft Job Cards before uninstall"),
                      frappe.ValidationError
 )
  

@@ -78,32 +78,42 @@ def valid_external(doc,method):
     frappe.msgprint("Running doc_events validation")
 
 
+def extend_bootinfo(bootinfo):
+    from quickfix.boot import extend_bootinfo as boot_extend_bootinfo
+    return boot_extend_bootinfo(bootinfo)
+
 def handle_session_creation(login_manager):
     user = login_manager.user if login_manager else frappe.session.user
-    frappe.get_doc({
-        "doctype": "Audit Log",
-        "doctype_name": "System",
-        "document_name": user,
-        "action": "Login",
-        "user": user,
-        "timestamp": now_datetime(),
-    }).insert(ignore_permissions=True)
+    try:
+        frappe.get_doc({
+            "doctype": "Audit Log",
+            "doctype_name": "System",
+            "document_name": user,
+            "action": "Login",
+            "user": user,
+            "timestamp": now_datetime(),
+        }).insert(ignore_permissions=True)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "QuickFix Session Creation Hook Failed")
 
 def handle_logout(login_manager):
     user = frappe.session.user
     if not user or user == "Guest":
         return
-    frappe.get_doc({
-        "doctype": "Audit Log",
-        "doctype_name": "System",
-        "document_name": user,
-        "action": "Logout",
-        "user": user,
-        "timestamp": now_datetime(),
-    }).insert(ignore_permissions=True)
+    try:
+        frappe.get_doc({
+            "doctype": "Audit Log",
+            "doctype_name": "System",
+            "document_name": user,
+            "action": "Logout",
+            "user": user,
+            "timestamp": now_datetime(),
+        }).insert(ignore_permissions=True)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "QuickFix Logout Hook Failed")
 
 def send_webhook(job_card_name, retry_count=0):
-    import requests,json,hashlib
+    import requests,hashlib
     settings=frappe.get_single("QuickFix Settings")
     if not settings.webhook_url:
         return
@@ -141,3 +151,4 @@ def send_webhook(job_card_name, retry_count=0):
                 at_front=False,
                 eta=60 
             )
+            
