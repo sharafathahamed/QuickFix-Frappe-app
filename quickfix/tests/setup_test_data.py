@@ -1,14 +1,11 @@
-import frappe
 import json
 import os
 
+import frappe
+
+
 def load_test_fixtures():
-    fixtures_path = os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "fixtures",
-        "test"
-    )
+    fixtures_path = os.path.join(os.path.dirname(__file__), "..", "fixtures", "test")
 
     fixture_files = [
         "device_type.json",
@@ -29,7 +26,7 @@ def load_test_fixtures():
             except Exception as e:
                 frappe.log_error(
                     title=f"Fixture load failed: {filename}",
-                    message=str(e)
+                    message=str(e),
                 )
 
     print("Test fixtures loaded successfully")
