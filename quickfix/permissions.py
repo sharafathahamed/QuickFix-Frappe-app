@@ -1,12 +1,13 @@
 import frappe
 
+
 def get_permission_query_conditions(user):
     if not user:
         user=frappe.session.user
     roles=frappe.get_roles(user)
     if "QF Manager" in roles or "Administrator" in roles or "System Manager" in roles or "QF Service Staff":
         return ""
-    if "QF Technician" in roles:    
+    if "QF Technician" in roles:
         return f"assigned_technician = (select name from `tabTechnician` where user='{user}')"
     return "1=0"
 def has_permission(doc,ptype,user=None):

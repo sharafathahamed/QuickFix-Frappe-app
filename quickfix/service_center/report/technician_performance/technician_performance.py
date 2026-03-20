@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
-from frappe.utils import flt, date_diff
+from frappe.utils import date_diff, flt
+
 
 def execute(filters=None):
     columns = get_columns(filters)
