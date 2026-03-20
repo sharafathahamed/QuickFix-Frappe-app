@@ -260,27 +260,6 @@ def transfer_technician(job_card, new_technician):
     frappe.db.commit()
     return "transferred"
 
-@frappe.whitelist()
-def get_status_chart_data():
-    statuses = [
-        "Draft",
-        "Pending Diagnosis", 
-        "Awaiting Customer Approval",
-        "In Repair",
-        "Ready for Delivery",
-        "Delivered",
-        "Cancelled"
-    ]
-    values = []
-    for status in statuses:
-        count = frappe.db.count("Job Card", {"status": status})
-        values.append(count)
-    
-    return {
-        "labels": statuses,
-        "datasets": [{"name": "Job Cards", "values": values}]
-    }
-
 # UNSAFE - f-string SQL (NEVER do this)
 @frappe.whitelist()
 def unsafe_search(customer_name):
