@@ -86,7 +86,7 @@ jobs:
       - name: Install quickfix app
         run: |
           cd frappe-bench
-          bench --site test.localhost install-app quickfix --skip-assets
+          bench --site test.localhost install-app quickfix
 
       - name: Enable developer mode
         run: |

@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import now_datetime
 
+
 def log_change(doc, method):
     if doc.doctype=="Audit Log":
         return
