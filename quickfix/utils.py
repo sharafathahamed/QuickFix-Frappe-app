@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import now, now_datetime, today
 
+
 @frappe.whitelist()
 def updated_technician_id(old_name,new_name):
     frappe.rename_doc("Technician",old_name,new_name,merge=False)
@@ -18,7 +19,7 @@ def check_low_stock():
     )
     if last_run:
         return
-    
+
     frappe.get_doc({
         "doctype": "Audit Log",
         "action": "low_stock_check",
@@ -31,11 +32,12 @@ def check_low_stock():
 
 def failing_job():
     raise Exception("Deliberate failure for testing RQ error handling")
-    
+
 def get_qr_code(job_card_name):
-    import qrcode
     import base64
     from io import BytesIO
+
+    import qrcode
     url=f"{frappe.utils.get_url()}/app/job-card/{job_card_name}"
     qr= qrcode.make(url)
     buffer=BytesIO()
@@ -45,7 +47,7 @@ def get_qr_code(job_card_name):
     return f"data:image/png;base64,{encoded}"
 
 def generate_monthly_revenue_report():
-    job_cards=frappe.get_all("Job Card",
+    frappe.get_all("Job Card",
             filters={"status":"Delivered"},
             fields=["name","final_amount","delivery_date"])
     frappe.log_error("Monthly revenue report generated","Report")
@@ -113,7 +115,9 @@ def handle_logout(login_manager):
         frappe.log_error(frappe.get_traceback(), "QuickFix Logout Hook Failed")
 
 def send_webhook(job_card_name, retry_count=0):
-    import requests,hashlib
+    import hashlib
+
+    import requests
     settings=frappe.get_single("QuickFix Settings")
     if not settings.webhook_url:
         return
@@ -149,6 +153,6 @@ def send_webhook(job_card_name, retry_count=0):
                 retry_count=retry_count + 1,
                 enqueue_after_commit=True,
                 at_front=False,
-                eta=60 
+                eta=60
             )
-            
+

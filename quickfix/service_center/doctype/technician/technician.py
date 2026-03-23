@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 
+
 class Technician(Document):
     def before_insert(self):
         if not self.email:

@@ -17,7 +17,7 @@ def load_test_fixtures():
 
 	for filename in fixture_files:
 		filepath = os.path.join(fixtures_path, filename)
-		with open(filepath, "r") as f:
+		with open(filepath) as f:
 			records = json.load(f)
 
 		for record in records:

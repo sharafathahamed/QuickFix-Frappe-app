@@ -1,7 +1,7 @@
 [
   {
     "doctype": "QuickFix Settings",
-    "shop_name": "QuickFix Test Shop",
+    "shop_name": "QuickFix Shop",
     "manager_email": "testmanager@quickfix.test",
     "default_labour_charge": 500,
     "low_stock_alert_enabled": 1
