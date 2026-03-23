@@ -39,9 +39,6 @@ jobs:
         with:
           python-version: '3.10'
 
-      # caching pip saves 2-3 minutes on every run
-      # because pip does not re-download packages
-      # that were already downloaded in a previous run
       - name: Cache pip
         uses: actions/cache@v4
         with:
