@@ -8,8 +8,8 @@ app_license = "mit"
 # Apps
 # ------------------
 
-#"Service Invoice": "quickfix.permissions.has_permission"
-#} required_apps = []
+# "Service Invoice": "quickfix.permissions.has_permission"
+# } required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -24,44 +24,31 @@ app_license = "mit"
 doctype_list_js = {"Job Card": "job_card_list.js"}
 
 fixtures = [
-    {"dt":"Custom DocPerm"},
-    {"dt":"Role", "filters": [["name", "in", ["QF Service Staff", "QF Technician", "QF Manager"]]]},
-    {"dt":"Custom Field"},
-    {"dt":"Property Setter"},
-    {"dt":"Workspace", "filters": [["label", "=", "QuickFix"]]},
-    {"dt":"Device Type", "filters": [["name", "in", ["Smartphone", "Laptop", "Tablet"]]]},
-    {"dt":"QuickFix Settings"},
+	{"dt": "Custom DocPerm"},
+	{"dt": "Role", "filters": [["name", "in", ["QF Service Staff", "QF Technician", "QF Manager"]]]},
+	{"dt": "Custom Field"},
+	{"dt": "Property Setter"},
+	{"dt": "Workspace", "filters": [["label", "=", "QuickFix"]]},
+	{"dt": "Device Type", "filters": [["name", "in", ["Smartphone", "Laptop", "Tablet"]]]},
+	{"dt": "QuickFix Settings"},
 ]
-doc_events={
-    "*":{
-        "on_update":"quickfix.audit.log_change",
-        "on_submit":"quickfix.audit.log_change",
-        "on_cancel":"quickfix.audit.log_change"
-    },
-    "Job Card":{
-        "validate":"quickfix.utils.valid_external"
-    }
+doc_events = {
+	"*": {
+		"on_update": "quickfix.audit.log_change",
+		"on_submit": "quickfix.audit.log_change",
+		"on_cancel": "quickfix.audit.log_change",
+	},
+	"Job Card": {"validate": "quickfix.utils.valid_external"},
 }
-permission_query_conditions = {
-    "Job Card": "quickfix.permissions.get_permission_query_conditions"
-}
+permission_query_conditions = {"Job Card": "quickfix.permissions.get_permission_query_conditions"}
 
-has_permission = {
-    "Service Invoice": "quickfix.permissions.has_permission"
-}
-override_doctype_class={
-    "Job Card": "quickfix.overrides.custom_job_card.CustomJobCard"
-}
+has_permission = {"Service Invoice": "quickfix.permissions.has_permission"}
+override_doctype_class = {"Job Card": "quickfix.overrides.custom_job_card.CustomJobCard"}
 # Includes in <head>
 # ------------------
-jinja={
-    "methods":[
-        "quickfix.utils.get_shop_name",
-        "quickfix.utils.get_qr_code"
-    ],
-    "filters":[
-        "quickfix.utils.format_job_id"
-    ]
+jinja = {
+	"methods": ["quickfix.utils.get_shop_name", "quickfix.utils.get_qr_code"],
+	"filters": ["quickfix.utils.format_job_id"],
 }
 # include js, css files in header of desk.html
 # app_include_css = "/assets/quickfix/css/quickfix.css"
@@ -72,28 +59,14 @@ app_include_js = "quickfix.bundle.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "quickfix/public/scss/website"
-website_route_rules=[
-    {"from_route":"/track-job","to_route":"track_job"}
-]
+website_route_rules = [{"from_route": "/track-job", "to_route": "track_job"}]
 
 scheduler_events = {
-    "cron": {
-        "0 2 1 * *": [
-            "quickfix.utils.generate_monthly_revenue_report"
-        ]
-    },
-    "daily": [
-        "quickfix.utils.check_low_stock"
-    ]
+	"cron": {"0 2 1 * *": ["quickfix.utils.generate_monthly_revenue_report"]},
+	"daily": ["quickfix.utils.check_low_stock"],
 }
 
-portal_menu_items = [
-{
-        "label": "Track My Job",
-        "route": "/track-job",
-        "role": "Guest"
-    }
-]
+portal_menu_items = [{"label": "Track My Job", "route": "/track-job", "role": "Guest"}]
 
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
@@ -143,10 +116,7 @@ portal_menu_items = [
 # ------------
 
 # before_install = "quickfix.install.before_install"
-after_install = [
-    "quickfix.setup.after_install",
-    "quickfix.patches.apply_patches"
-]
+after_install = ["quickfix.setup.after_install", "quickfix.patches.apply_patches"]
 
 # Uninstallation
 # ------------
@@ -159,10 +129,7 @@ before_uninstall = "quickfix.setup.before_uninstall"
 # AttributeError during session boot. Update the path here and provide
 # a thin alias in utils for compatibility.
 extend_bootinfo = "quickfix.boot.extend_bootinfo"
-on_session_creation = [
-    "quickfix.utils.handle_session_creation",
-    "quickfix.patches.apply_patches"
-]
+on_session_creation = ["quickfix.utils.handle_session_creation", "quickfix.patches.apply_patches"]
 on_logout = "quickfix.utils.handle_logout"
 # after_uninstall = "quickfix.uninstall.after_uninstall"
 
@@ -207,9 +174,7 @@ on_logout = "quickfix.utils.handle_logout"
 # override_doctype_class = {
 #     "ToDo": "custom_app.overrides.CustomToDo"
 # }
-override_whitelisted_methods = {
-    "frappe.client.get_count": "quickfix.api.custom_get_count"
-}
+override_whitelisted_methods = {"frappe.client.get_count": "quickfix.api.custom_get_count"}
 # Document Events
 # ---------------
 # Hook on document methods and events

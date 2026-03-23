@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../apps/quickfix/quickfix/public/js/quickfix.bundle.js"],
+  "sourcesContent": ["frappe.provide(\"frappe.views\");\n// console.log(34567890)\nsetTimeout(() => {\n\tif (frappe.boot.quickfix_shop_name) {\n\t\tlet shop_name = frappe.boot.quickfix_shop_name;\n\t\t$(\".navbar-home\").append(\n\t\t\t`<span style=\"margin-left:10px; font-weight:600;\">\n                ${shop_name}\n            </span>`\n\t\t);\n\t}\n}, 100);\n"],
+  "mappings": ";;AAAA,SAAO,QAAQ,cAAc;AAE7B,aAAW,MAAM;AAChB,QAAI,OAAO,KAAK,oBAAoB;AACnC,UAAI,YAAY,OAAO,KAAK;AAC5B,QAAE,cAAc,EAAE;AAAA,QACjB;AAAA,kBACe;AAAA;AAAA,MAEhB;AAAA,IACD;AAAA,EACD,GAAG,GAAG;",
+  "names": []
+}
