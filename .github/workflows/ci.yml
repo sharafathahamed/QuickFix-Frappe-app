@@ -63,6 +63,14 @@ jobs:
           bench set-config -g redis_queue "$FRAPPE_REDIS_QUEUE"
           bench set-config -g redis_socketio "$FRAPPE_REDIS_SOCKETIO"
 
+      - name: Get quickfix app
+        run: |
+          cd frappe-bench
+          bench get-app quickfix \
+            https://github.com/sharafathahamed/QuickFix-Frappe-app.git \
+            --branch add-ci-workflow \
+            --skip-assets
+
       - name: Create site
         run: |
           cd frappe-bench
@@ -75,15 +83,9 @@ jobs:
             --db-name test_quickfix \
             --no-mariadb-socket
 
-      - name: Checkout quickfix app
-        uses: actions/checkout@v4
-        with:
-          path: frappe-bench/apps/quickfix
-
       - name: Install quickfix app
         run: |
           cd frappe-bench
-          pip install -e apps/quickfix
           bench --site test.localhost install-app quickfix
 
       - name: Enable developer mode
