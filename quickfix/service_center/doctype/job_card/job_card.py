@@ -26,9 +26,7 @@ class JobCard(Document):
 
 		settings = frappe.db.get_single_value("QuickFix Settings", "default_labour_charge")
 		if self.assigned_technician:
-			specialization = frappe.db.get_value(
-				"Technician", self.assigned_technician, "specialization"
-			)
+			specialization = frappe.db.get_value("Technician", self.assigned_technician, "specialization")
 			if specialization != self.device_type:
 				frappe.throw(
 					f"The assigned technician is specialized in {specialization} "
@@ -114,12 +112,12 @@ class JobCard(Document):
 				recipients=[self.customer_email],
 				subject=f"Job Card {self.name} - Ready for Delivery",
 				message=f"""
-					Dear {self.customer_name},<br><br>
-					Your device is ready for delivery.<br>
-					Job ID: {self.name}<br>
-					Total Amount: {self.final_amount}<br><br>
-					Regards
-				""",
+                    Dear {self.customer_name},<br><br>
+                    Your device is ready for delivery.<br>
+                    Job ID: {self.name}<br>
+                    Total Amount: {self.final_amount}<br><br>
+                    Regards
+                """,
 				attachments=[{"fname": f"{self.name}.pdf", "fcontent": pdf}],
 			)
 			frappe.logger("quickfix").info(f"Completion email sent for {self.name}")
